@@ -1,118 +1,201 @@
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 
+// masterAdmin , admin
+
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      const user = await User.findOne({ email });
-      if (!user) return res.status(401).json({ message: 'Invalid credentials' });
-  
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-  
-      const accessToken = generateAccessToken(user);
-  
-      user.accessToken = accessToken;
-  
-      await user.save();
-  
-      res.status(200).json({
-        message: 'Login successful',
-        accessToken,
-        user: { id: user._id, name: user.name, email: user.email },
-      });
-  
-    } catch (error) {
-      res.status(500).json({ message: 'Login error', error: error.message });
-    }
+  const { username, password } = req.body;
+
+  try {
+    const doc = await User.findOne(); // Get the main document that holds all users
+
+    if (!doc) return res.status(404).json({ message: 'No users found' });
+
+    const user = doc.users.find(u => u.username === username);
+
+    if (!user)
+      return res.status(401).json({ message: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: 'Invalid credentials' });
+
+    const accessToken = generateAccessToken(user);
+    user.accessToken = accessToken;
+
+    await doc.save(); // Save the updated token
+
+    res.status(200).json({
+      message: 'Login successful',
+      accessToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        token: user.accessToken,
+        role: user.role,
+        email: user.email,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Login error', error: error.message });
+  }
 };
-  
+
 export const registerUser = async (req, res) => {
-    const { name, email, password } = req.body;
-  
-    try {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) return res.status(409).json({ message: 'Email already registered' });
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({ name, email, password: hashedPassword });
-  
-      const accessToken = generateAccessToken(user);
-      const refreshToken = generateRefreshToken(user);
-  
-      user.accessToken = accessToken;
-      user.refreshToken = refreshToken;
-  
-      await user.save();
-  
-      res.status(201).json({
-        message: 'Registration successful',
-        accessToken,
-        refreshToken,
-        user: { id: user._id, name: user.name, email: user.email },
-      });
-  
-    } catch (error) {
-      res.status(500).json({ message: 'Registration error', error: error.message });
+  const { username, password, email } = req.body;
+  try {
+    let doc = await User.findOne(); // One document holds all users
+    if (!doc) {
+      doc = new User({ users: [] });
     }
-};    
+
+    const existingUser = doc.users.find(u => u.username === username);
+    if (existingUser) {
+      return res.status(409).json({ message: 'username already exist' });
+    }
+    const existingUserEmail = doc.users.find(u => u.email === email);
+    if (existingUserEmail) {
+      return res.status(409).json({ message: 'email already exist' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = {
+      _id: new mongoose.Types.ObjectId(),
+      username,
+      password: hashedPassword,
+      email,
+      role: "admin",
+      accessToken: generateAccessToken({ username }),
+    };
+
+    doc.users.push(newUser);
+    await doc.save();
+
+    res.status(200).json({
+      statusCode: 200,
+      message: 'Registration successful',
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        token: newUser.accessToken,
+        role: newUser.role,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Registration error', error: error.message });
+  }
+};
 
 export const forgotPassword = async (req, res) => {
-    const { email } = req.body;
-    try {
-      const user = await User.findOne({ email });
-      if (!user) return res.status(404).json({ message: 'User not found' });
-  
-      const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-      const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-  
-      user.resetOTP = otp;
-      user.resetOTPExpires = expiry;
-      await user.save();
-  
-      await sendEmail(
-        email,
-        'Password Reset OTP',
-        `<p>Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`
-      );
+  const { input } = req.body; // input can be username or email
+  try {
+    // Find user by username or email
+    const doc = await User.findOne();
+    if (!doc) return res.status(404).json({ message: 'User storage not found' });
 
-      res.json({ message: 'OTP sent to email' });
-  
-    } catch (error) {
-      res.status(500).json({ message: 'Error sending OTP', error: error.message });
-    }
+    const user = doc.users.find(
+      (u) => u.username === input /* || u.email === input */
+    );
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // expires in 10 minutes
+
+    user.resetOTP = otp;
+    user.resetOTPExpires = expiry;
+
+    await sendEmail(user.email, 'OTP Reset Password', ` <p>Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`)
+    await doc.save(); // Save the entire document
+
+    res.json({ message: 'OTP sended check your email' }); // Remove `otp` in prod
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error sending OTP', error: error.message });
+  }
 };
 
 export const resetPassword = async (req, res) => {
-    const { email, otp, newPassword } = req.body;
-  
-    try {
-      const user = await User.findOne({ email });
-      if (!user || !user.resetOTP || !user.resetOTPExpires)
-        return res.status(400).json({ message: 'Invalid or expired OTP' });
-  
-      if (user.resetOTP !== otp)
-        return res.status(400).json({ message: 'Incorrect OTP' });
-  
-      if (user.resetOTPExpires < new Date())
-        return res.status(400).json({ message: 'OTP expired' });
-  
-      const hashed = await bcrypt.hash(newPassword, 10);
-      user.password = hashed;
-      user.resetOTP = null;
-      user.resetOTPExpires = null;
-  
-      await user.save();
-  
-      res.json({ message: 'Password reset successful' });
-  
-    } catch (error) {
-      res.status(500).json({ message: 'Reset failed', error: error.message });
-    }
+  const { username, otp, newPassword } = req.body; // "username" can be username OR email
+
+  try {
+    const doc = await User.findOne();
+    if (!doc) return res.status(404).json({ message: 'No users found' });
+
+    const user = doc.users.find(u =>
+      u.username === username || u.email === username
+    );
+
+    if (!user)
+      return res.status(404).json({ message: 'User not found' });
+
+    if (!user.resetOTP || !user.resetOTPExpires)
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+
+    if (user.resetOTP !== otp)
+      return res.status(400).json({ message: 'Incorrect OTP' });
+
+    if (user.resetOTPExpires < new Date())
+      return res.status(400).json({ message: 'OTP expired' });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetOTP = null;
+    user.resetOTPExpires = null;
+
+    await doc.save();
+
+    res.json({ message: 'Password reset successful' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Reset failed', error: error.message });
+  }
 };
 
-  
+export const updateUser = async (req, res) => {
+  const { id, username, password, newPassword, email } = req.body;
+  try {
+    // Get the single User document that contains all users
+    const rootUserDoc = await User.findOne();
+    if (!rootUserDoc) return res.status(404).json({ message: 'User collection not found' });
+
+    // Find the specific user by _id in the array
+    const user = rootUserDoc.users.find(u => u._id.toString() === id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Handle password change if requested
+    if (newPassword) {
+      if (!password) return res.status(400).json({ message: 'Current password required' });
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(401).json({ message: 'Invalid current password' });
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+    // Handle username update if provided
+    if (username) {
+      user.username = username;
+    }
+    if (email) {
+      user.email = email;
+    }
+    await rootUserDoc.save();
+
+    res.status(200).json({
+      message: 'User updated successfully',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        // Only include password if absolutely needed (not recommended)
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Update failed', error: error.message });
+  }
+};
