@@ -98,7 +98,7 @@ export const forgotPassword = async (req, res) => {
     if (!doc) return res.status(404).json({ message: 'User storage not found' });
 
     const user = doc.users.find(
-      (u) => u.username === input /* || u.email === input */
+      (u) => u.username === input || u.email === input
     );
 
     if (!user) return res.status(404).json({ message: 'User not found' });
