@@ -153,16 +153,15 @@ export const verifyOTP = async (req, res) => {
   }
 };
 
-
 export const resetPassword = async (req, res) => {
-  const { username, otp, newPassword } = req.body; // "username" can be username OR email
+  const { input, otp, newPassword } = req.body; // "username" can be username OR email
 
   try {
     const doc = await User.findOne();
     if (!doc) return res.status(404).json({ message: 'No users found' });
 
     const user = doc.users.find(u =>
-      u.username === username || u.email === username
+      u.username === input || u.email === input
     );
 
     if (!user)
