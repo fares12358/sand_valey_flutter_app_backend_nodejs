@@ -53,7 +53,6 @@ export const registerUser = async (req, res) => {
     if (!doc) {
       doc = new User({ users: [] });
     }
-
     const existingUser = doc.users.find(u => u.username === username);
     if (existingUser) {
       return res.status(409).json({ message: 'username already exist' });
@@ -68,7 +67,7 @@ export const registerUser = async (req, res) => {
       username,
       password: hashedPassword,
       email,
-      role: "admin",
+      role: "user",
       accessToken: generateAccessToken({ username }),
     };
 
@@ -119,6 +118,41 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: 'Error sending OTP', error: error.message });
   }
 };
+
+export const verifyOTP = async (req, res) => {
+  const { input, otp } = req.body; // input can be username or email
+
+  try {
+    const doc = await User.findOne();
+    if (!doc) return res.status(404).json({ message: 'No users found' });
+
+    const user = doc.users.find(
+      (u) => u.username === input || u.email === input
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.resetOTP || !user.resetOTPExpires) {
+      return res.status(400).json({ message: 'No OTP generated or expired' });
+    }
+
+    if (user.resetOTP !== otp) {
+      return res.status(400).json({ message: 'Incorrect OTP' });
+    }
+
+    if (user.resetOTPExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP expired' });
+    }
+
+    res.status(200).json({ message: 'OTP verified successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'OTP verification failed', error: error.message });
+  }
+};
+
 
 export const resetPassword = async (req, res) => {
   const { username, otp, newPassword } = req.body; // "username" can be username OR email
