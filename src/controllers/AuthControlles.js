@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
+import otpTemplate from '../utils/emailTemplates/otpTemplate.js';
 
 // masterAdmin , admin
 
@@ -47,7 +48,7 @@ export const loginUser = async (req, res) => {
 };
 
 export const registerUser = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, password, email, name } = req.body;
   try {
     let doc = await User.findOne(); // One document holds all users
     if (!doc) {
@@ -64,6 +65,7 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
       _id: new mongoose.Types.ObjectId(),
+      name,
       username,
       password: hashedPassword,
       email,
@@ -79,6 +81,7 @@ export const registerUser = async (req, res) => {
       message: 'Registration successful',
       user: {
         id: newUser._id,
+        name:newUser.name,
         username: newUser.username,
         token: newUser.accessToken,
         role: newUser.role,
@@ -109,7 +112,7 @@ export const forgotPassword = async (req, res) => {
     user.resetOTP = otp;
     user.resetOTPExpires = expiry;
 
-    await sendEmail(user.email, 'OTP Reset Password', ` <p>Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`)
+    await sendEmail(user.email, 'Your OTP Code', otpTemplate(user.username, otp));
     await doc.save(); // Save the entire document
 
     res.json({ message: 'OTP sended check your email' }); // Remove `otp` in prod
@@ -190,7 +193,7 @@ export const resetPassword = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-  const { id, username, password, newPassword, email } = req.body;
+  const { id, username, password, newPassword, email ,name } = req.body;
   try {
     // Get the single User document that contains all users
     const rootUserDoc = await User.findOne();
@@ -213,6 +216,9 @@ export const updateUser = async (req, res) => {
     if (username) {
       user.username = username;
     }
+    if (name) {
+      user.name = name;
+    }
     if (email) {
       user.email = email;
     }
@@ -224,6 +230,7 @@ export const updateUser = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
+        name:user.name,
         // Only include password if absolutely needed (not recommended)
       }
     });
@@ -232,3 +239,5 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: 'Update failed', error: error.message });
   }
 };
+
+    // await sendEmail(user.email, 'OTP Reset Password', ` <p>Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`)

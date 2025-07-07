@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Image</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #06b6d4;
+    }
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    input[type="file"] {
+      margin-bottom: 20px;
+    }
+    button {
+      background: #06b6d4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #response {
+      margin-top: 20px;
+      color: green;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload an Image</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="image" required />
+    <button type="submit">Upload</button>
+  </form>
+  <div id="response"></div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+    
+      const formData = new FormData();
+      const fileInput = document.querySelector('input[type="file"]');
+      formData.append('image', fileInput.files[0]);
+    
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/upload', {
+          method: 'POST',
+          body: formData
+        });
+    
+        const result = await response.json();
+        console.log(result);
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    });
+    </script>
+</body>
+</html>
