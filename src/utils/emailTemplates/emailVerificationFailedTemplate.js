@@ -36,9 +36,9 @@ const emailVerificationFailedTemplate = () => `
             <!-- Body -->
             <tr>
               <td style="padding: 30px;">
-                <p style="font-size: 16px; color: #333;">The verification link is invalid or has expired.</p>
+              <p style="font-size: 16px; color: #333;">The verification link is invalid or has expired.</p>
+              <!--
                 <p style="font-size: 16px; color: #333;">Please request a new verification email from your account settings or sign up again if needed.</p>
-                <!--
                 <div style="text-align: center; margin: 30px 0;">
                 <a href="https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/resend-verification" style="display: inline-block; padding: 12px 25px; background: #ef4444; color: #fff; text-decoration: none; border-radius: 6px; font-size: 18px;">Resend Verification</a>
                 </div>
