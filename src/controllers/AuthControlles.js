@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/Users.js';
@@ -6,7 +7,7 @@ import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import otpTemplate from '../utils/emailTemplates/otpTemplate.js';
 import verifyEmailTemplate from '../utils/emailTemplates/verifyEmailTemplate.js';
-import crypto from 'crypto';
+import emailVerifiedTemplate from '../utils/emailTemplates/emailVerifiedTemplate.js';
 // masterAdmin , admin
 
 export const loginUser = async (req, res) => {
@@ -242,7 +243,7 @@ export const updateUser = async (req, res) => {
       user.emailVerificationToken = crypto.randomBytes(20).toString('hex');
 
       // Send verification email
-      const verificationLink = `https://yourdomain.com/api/verify-email/${user.emailVerificationToken}`;
+      const verificationLink = `https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/verify-email/${user.emailVerificationToken}`;
       await sendEmail(
         email,
         'Verify Your New Email',
@@ -284,9 +285,40 @@ export const verifyEmail = async (req, res) => {
 
     await doc.save();
 
-    res.status(200).json({ message: 'Email verified successfully' });
+    res.status(200).send(emailVerifiedTemplate(user.username));
 
   } catch (error) {
     res.status(500).json({ message: 'Email verification failed', error: error.message });
+  }
+};
+
+export const verifyUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const rootDoc = await User.findOne();
+    if (!rootDoc) return res.status(404).json({ message: 'User collection not found' });
+
+    const user = rootDoc.users.find(u => u._id.toString() === id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate and assign verification token
+    user.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+    user.isEmailVerified = false;
+
+    await rootDoc.save();
+
+    const verificationLink = `https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/verify-email/${user.emailVerificationToken}`;
+
+    await sendEmail(
+      user.email,
+      'Verify Your Email',
+      verifyEmailTemplate(user.username, verificationLink)
+    );
+
+    res.status(200).json({ message: 'Verification email sent successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send verification email', error: error.message });
   }
 };

@@ -1,17 +1,14 @@
-const verifyEmailTemplate = (username, link) => `
+const emailVerifiedTemplate = (username) => `
   <!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Email Verification</title>
+    <title>Email Verified</title>
     <style>
       @media only screen and (max-width: 600px) {
         .container {
           width: 100% !important;
-        }
-        .verify-btn {
-          font-size: 16px !important;
         }
       }
     </style>
@@ -21,18 +18,18 @@ const verifyEmailTemplate = (username, link) => `
       <tr>
         <td align="center" style="padding: 40px 15px;">
           <table role="presentation" class="container" style="width: 100%; max-width: 600px; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-
+            
             <!-- Logo -->
             <tr>
-              <td style="text-align: center; padding: 0px;">
+              <td style="text-align: center; padding: 0;">
                 <img src="https://res.cloudinary.com/dykittdyj/image/upload/v1751915034/uploads/zfdhxtiwfixqqrs9nnln.png" alt="Sand Valley Logo" style="height: 150px;" />
               </td>
             </tr>
 
             <!-- Header -->
             <tr>
-              <td style="background-color: #f7941d; color: white; padding: 20px; text-align: center;">
-                <h2 style="margin: 0; font-size: 24px;">📧 Email Verification</h2>
+              <td style="background-color: #22c55e; color: white; padding: 20px; text-align: center;">
+                <h2 style="margin: 0; font-size: 24px;">✅ Email Verified</h2>
               </td>
             </tr>
 
@@ -40,13 +37,13 @@ const verifyEmailTemplate = (username, link) => `
             <tr>
               <td style="padding: 30px;">
                 <p style="font-size: 16px; color: #333;">Hi <strong>${username}</strong>,</p>
-                <p style="font-size: 16px; color: #333;">Thank you for signing up. Please verify your email address by clicking the button below:</p>
-                
+                <p style="font-size: 16px; color: #333;">Your email has been successfully verified.</p>
+
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${link}" class="verify-btn" style="display: inline-block; padding: 12px 25px; background: #f7941d; color: #fff; text-decoration: none; border-radius: 6px; font-size: 18px;">Verify Email</a>
+                  <a href="https://your-frontend-url.com/login" style="display: inline-block; padding: 12px 25px; background: #06b6d4; color: #fff; text-decoration: none; border-radius: 6px; font-size: 18px;">Go to Login</a>
                 </div>
 
-                <p style="font-size: 14px; color: #555;">This link is valid for 24 hours. If you didn’t request this, you can safely ignore this email.</p>
+                <p style="font-size: 14px; color: #555;">If you have any questions, feel free to contact us.</p>
                 <p style="font-size: 14px; color: #999; margin-top: 40px;">Thanks,<br/>The Sand Valley Team</p>
               </td>
             </tr>
@@ -65,4 +62,4 @@ const verifyEmailTemplate = (username, link) => `
   </html>
 `;
 
-export default verifyEmailTemplate;
+export default emailVerifiedTemplate;
