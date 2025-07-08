@@ -1,5 +1,5 @@
 import express from 'express';
-import { forgotPassword, loginUser, registerUser, resetPassword, updateUser, verifyOTP } from '../controllers/AuthControlles.js';
+import { forgotPassword, loginUser, registerUser, resetPassword, updateUser, verifyEmail, verifyOTP } from '../controllers/AuthControlles.js';
 
 const router = express.Router();
 
@@ -14,5 +14,7 @@ router.post('/verify-otp', verifyOTP);
 router.post('/reset-password', resetPassword);
 // POST /api/auth/logout
 router.put('/update-user', updateUser);
+
+router.get('/verify-email/:token', verifyEmail);
 
 export default router;

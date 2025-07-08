@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
       role: { type: String },
       resetOTP: String,
       resetOTPExpires: Date,
+      emailVerificationToken: { type: String },
+      isEmailVerified: { type: Boolean, default: false },
     }
   ],
   data: {

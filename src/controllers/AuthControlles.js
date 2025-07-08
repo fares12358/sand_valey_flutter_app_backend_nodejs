@@ -5,7 +5,8 @@ import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import otpTemplate from '../utils/emailTemplates/otpTemplate.js';
-
+import verifyEmailTemplate from '../utils/emailTemplates/verifyEmailTemplate.js';
+import crypto from 'crypto';
 // masterAdmin , admin
 
 export const loginUser = async (req, res) => {
@@ -35,7 +36,7 @@ export const loginUser = async (req, res) => {
       accessToken,
       user: {
         id: user._id,
-        name:user.name,
+        name: user.name,
         username: user.username,
         token: user.accessToken,
         role: user.role,
@@ -63,6 +64,7 @@ export const registerUser = async (req, res) => {
     if (existingUserEmail) {
       return res.status(409).json({ message: 'email already exist' });
     }
+    const token = crypto.randomBytes(20).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
       _id: new mongoose.Types.ObjectId(),
@@ -72,7 +74,13 @@ export const registerUser = async (req, res) => {
       email,
       role: "user",
       accessToken: generateAccessToken({ username }),
+      isEmailVerified: false,
     };
+    await sendEmail(
+      email,
+      'Verify Your Email',
+      verifyEmailTemplate(username, `https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/verify-email/${token}`)
+    );
 
     doc.users.push(newUser);
     await doc.save();
@@ -82,10 +90,12 @@ export const registerUser = async (req, res) => {
       message: 'Registration successful',
       user: {
         id: newUser._id,
-        name:newUser.name,
+        name: newUser.name,
         username: newUser.username,
         token: newUser.accessToken,
         role: newUser.role,
+        emailVerificationToken: newUser.emailVerificationToken,
+        isEmailVerified: newUser.isEmailVerified,
       },
     });
 
@@ -194,7 +204,7 @@ export const resetPassword = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-  const { id, username, password, newPassword, email ,name } = req.body;
+  const { id, username, password, newPassword, email, name } = req.body;
   try {
     // Get the single User document that contains all users
     const rootUserDoc = await User.findOne();
@@ -220,9 +230,26 @@ export const updateUser = async (req, res) => {
     if (name) {
       user.name = name;
     }
-    if (email) {
+
+    if (email && email !== user.email) {
+      // Check if email already exists in another user
+      const emailExists = rootUserDoc.users.some(u => u.email === email && u._id.toString() !== id);
+      if (emailExists) {
+        return res.status(409).json({ message: 'Email already in use by another user' });
+      }
       user.email = email;
+      user.isEmailVerified = false;
+      user.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+
+      // Send verification email
+      const verificationLink = `https://yourdomain.com/api/verify-email/${user.emailVerificationToken}`;
+      await sendEmail(
+        email,
+        'Verify Your New Email',
+        verifyEmailTemplate(user.username, verificationLink)
+      );
     }
+
     await rootUserDoc.save();
 
     res.status(200).json({
@@ -231,7 +258,8 @@ export const updateUser = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        name:user.name,
+        name: user.name,
+        isEmailVerified: user.isEmailVerified
         // Only include password if absolutely needed (not recommended)
       }
     });
@@ -241,4 +269,24 @@ export const updateUser = async (req, res) => {
   }
 };
 
-    // await sendEmail(user.email, 'OTP Reset Password', ` <p>Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`)
+export const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const doc = await User.findOne();
+    if (!doc) return res.status(404).json({ message: 'User storage not found' });
+
+    const user = doc.users.find(u => u.emailVerificationToken === token);
+    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+
+    await doc.save();
+
+    res.status(200).json({ message: 'Email verified successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Email verification failed', error: error.message });
+  }
+};
