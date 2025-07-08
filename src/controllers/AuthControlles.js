@@ -8,6 +8,7 @@ import sendEmail from '../utils/sendEmail.js';
 import otpTemplate from '../utils/emailTemplates/otpTemplate.js';
 import verifyEmailTemplate from '../utils/emailTemplates/verifyEmailTemplate.js';
 import emailVerifiedTemplate from '../utils/emailTemplates/emailVerifiedTemplate.js';
+import emailVerificationFailedTemplate from '../utils/emailTemplates/emailVerificationFailedTemplate.js';
 // masterAdmin , admin
 
 export const loginUser = async (req, res) => {
@@ -288,7 +289,7 @@ export const verifyEmail = async (req, res) => {
     res.status(200).send(emailVerifiedTemplate(user.username));
 
   } catch (error) {
-    res.status(500).json({ message: 'Email verification failed', error: error.message });
+    res.status(500).send(emailVerificationFailedTemplate());
   }
 };
 
