@@ -77,6 +77,7 @@ export const registerUser = async (req, res) => {
       role: "user",
       accessToken: generateAccessToken({ username }),
       isEmailVerified: false,
+      emailVerificationToken: token,
     };
     await sendEmail(
       email,
@@ -96,7 +97,6 @@ export const registerUser = async (req, res) => {
         username: newUser.username,
         token: newUser.accessToken,
         role: newUser.role,
-        emailVerificationToken: newUser.emailVerificationToken,
         isEmailVerified: newUser.isEmailVerified,
       },
     });
