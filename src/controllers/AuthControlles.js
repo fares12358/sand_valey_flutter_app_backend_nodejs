@@ -9,6 +9,7 @@ import otpTemplate from '../utils/emailTemplates/otpTemplate.js';
 import verifyEmailTemplate from '../utils/emailTemplates/verifyEmailTemplate.js';
 import emailVerifiedTemplate from '../utils/emailTemplates/emailVerifiedTemplate.js';
 import emailVerificationFailedTemplate from '../utils/emailTemplates/emailVerificationFailedTemplate.js';
+import emailInvalidOrExpiredTemplate from '../utils/emailTemplates/emailInvalidOrExpiredTemplate.js';
 // masterAdmin , admin
 
 export const loginUser = async (req, res) => {
@@ -276,10 +277,10 @@ export const verifyEmail = async (req, res) => {
 
   try {
     const doc = await User.findOne();
-    if (!doc) return res.status(404).json({ message: 'User storage not found' });
+    if (!doc) return res.status(404).send(emailInvalidOrExpiredTemplate());
 
     const user = doc.users.find(u => u.emailVerificationToken === token);
-    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+    if (!user) return res.status(400).send(emailInvalidOrExpiredTemplate());
 
     user.isEmailVerified = true;
     user.emailVerificationToken = null;

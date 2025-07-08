@@ -28,7 +28,7 @@ const emailVerifiedTemplate = (username) => `
 
             <!-- Header -->
             <tr>
-              <td style="background-color: #22c55e; color: white; padding: 20px; text-align: center;">
+              <td style="background-color: #f7941d; color: white; padding: 20px; text-align: center;">
                 <h2 style="margin: 0; font-size: 24px;">✅ Email Verified</h2>
               </td>
             </tr>
@@ -38,10 +38,6 @@ const emailVerifiedTemplate = (username) => `
               <td style="padding: 30px;">
                 <p style="font-size: 16px; color: #333;">Hi <strong>${username}</strong>,</p>
                 <p style="font-size: 16px; color: #333;">Your email has been successfully verified.</p>
-
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://your-frontend-url.com/login" style="display: inline-block; padding: 12px 25px; background: #06b6d4; color: #fff; text-decoration: none; border-radius: 6px; font-size: 18px;">Go to Login</a>
-                </div>
 
                 <p style="font-size: 14px; color: #555;">If you have any questions, feel free to contact us.</p>
                 <p style="font-size: 14px; color: #999; margin-top: 40px;">Thanks,<br/>The Sand Valley Team</p>
