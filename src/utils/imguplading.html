@@ -23,30 +23,40 @@
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
     }
     input[type="file"] {
-      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
+    input[type="text"] {
+      border: 1px solid #ccc;
     }
     button {
       background: #06b6d4;
       color: white;
-      padding: 10px 20px;
       border: none;
       font-weight: bold;
-      border-radius: 5px;
       cursor: pointer;
     }
     #response {
       margin-top: 20px;
-      color: green;
       font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>Upload an Image</h1>
+  <h1>Upload Category Image</h1>
   <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" name="image" required />
+    <input type="text" name="name" placeholder="Category Name" value="طماطم" required />
+    <input type="text" name="id" placeholder="Parent Category ID" value="686fde5cdd731e3e74aef83e" required />
     <button type="submit">Upload</button>
   </form>
   <div id="response"></div>
@@ -54,23 +64,33 @@
   <script>
     document.getElementById('uploadForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-    
-      const formData = new FormData();
-      const fileInput = document.querySelector('input[type="file"]');
-      formData.append('image', fileInput.files[0]);
-    
+      const form = e.target;
+      const formData = new FormData(form);
+
       try {
-        const response = await fetch('http://localhost:5000/api/auth/upload', {
+        const response = await fetch('http://localhost:5000/api/auth/add-seeds-categories', {
           method: 'POST',
           body: formData
         });
-    
+
         const result = await response.json();
+        const responseDiv = document.getElementById('response');
+
+        if (response.ok) {
+          responseDiv.style.color = 'green';
+          responseDiv.textContent = '✅ Success: ' + result.message;
+        } else {
+          responseDiv.style.color = 'red';
+          responseDiv.textContent = '❌ Error: ' + (result.message || 'Unknown error');
+        }
+
         console.log(result);
       } catch (error) {
         console.error('Upload failed:', error);
+        document.getElementById('response').style.color = 'red';
+        document.getElementById('response').textContent = '❌ Network or server error';
       }
     });
-    </script>
+  </script>
 </body>
 </html>

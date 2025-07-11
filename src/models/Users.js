@@ -19,35 +19,111 @@ const userSchema = new mongoose.Schema({
   ],
   data: {
     seeds: {
-      seedsType: [
+      _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+      data: [
         {
-          img: { type: String },
+          //cat
+          _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+          img: {
+            url: { type: String },
+            id: { type: String },
+          },
           name: { type: String },
-          seedType2: [
+          Type: [
             {
+              //subcat
+              _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
               img: { type: String },
               name: { type: String },
-              description: { type: String }
+              description: {
+                //desc
+                img: { type: String },
+                name: { type: String },
+                company: { type: String },
+                description: { type: String }
+              }
             }
           ]
         }
-      ],
+      ]
     },
-    Fertilizer: {},
-    Insecticide: {},
-    Communication: {
-      city: [
+    Fertilizer: {
+      _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+      data: [
         {
+          //cat
+          _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+          img: { type: String },
           name: { type: String },
-          eng: [
+          Type: [
             {
-              name: { type: String },
-              phone: { type: String },
+              //subcat
               img: { type: String },
-            },
-          ],
-        },
-      ],
+              name: { type: String },
+              _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+              description: {
+                //desc
+                img: { type: String },
+                name: { type: String },
+                company: { type: String },
+                description: { type: String }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    Insecticide: {
+      _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+      data: [
+        {
+          //cat
+          _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+          img: { type: String },
+          name: { type: String },
+          Type: [
+            {
+              //subcat
+              img: { type: String },
+              name: { type: String },
+              _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+              description: {
+                //desc
+                img: { type: String },
+                name: { type: String },
+                company: { type: String },
+                description: { type: String }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    Communication: {
+      _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+      data: [
+        {
+          //cat
+          _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+          img: { type: String },
+          name: { type: String },
+          Type: [
+            {
+              //subcat
+              img: { type: String },
+              name: { type: String },
+              _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+              description: {
+                //desc
+                img: { type: String },
+                name: { type: String },
+                company: { type: String },
+                description: { type: String }
+              }
+            }
+          ]
+        }
+      ]
     },
   }
 }, { timestamps: true });
