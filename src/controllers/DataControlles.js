@@ -5,6 +5,7 @@ import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import uploadImage from '../utils/uploader/upload.js';
+import fs from 'fs/promises';
 
 export const getALlData = async (req, res) => {
     try {
@@ -17,7 +18,6 @@ export const getALlData = async (req, res) => {
         res.status(500).json({ message: 'fitch data error', error: error.message });
     }
 };
-
 
 export const getAllSeeds = async (req, res) => {
     try {
@@ -43,7 +43,6 @@ export const addSeedsCategories = async (req, res) => {
         if (!file) {
             return res.status(400).json({ message: 'Image file is required' });
         }
-
         
         const doc = await User.findOne();
         if (!doc) return res.status(404).json({ message: 'User document not found' });
@@ -66,7 +65,7 @@ export const addSeedsCategories = async (req, res) => {
 
         cat.push(newCategory)
         await doc.save();
-
+        await fs.unlink(file.path);
         res.status(200).json({
             message: 'new category added successfully',
             categories: doc.data[section],
@@ -76,8 +75,6 @@ export const addSeedsCategories = async (req, res) => {
         res.status(500).json({ message: 'Add category error', error: error.message });
     }
 };
-
-
 
 export const updateData = async (req, res) => {
     const { select, typeone, typetwo, description, img, name, id } = req.body;
