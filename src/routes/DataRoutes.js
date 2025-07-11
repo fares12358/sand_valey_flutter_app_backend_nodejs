@@ -1,5 +1,5 @@
 import express from 'express';
-import { addSeedsCategories, getALlData, getAllSeeds } from '../controllers/DataControlles.js';
+import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds } from '../controllers/DataControlles.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,5 +16,7 @@ router.get('/get-data', getALlData);
 //seeds
 router.get('/get-seeds-data', getAllSeeds);
 router.post('/add-seeds-categories', upload.single('image'), addSeedsCategories);
+router.delete('/delete-seeds-categories/:id', deleteCategoryById);
+
 
 export default router;

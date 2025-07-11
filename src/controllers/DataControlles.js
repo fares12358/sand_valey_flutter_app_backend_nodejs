@@ -5,6 +5,7 @@ import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import uploadImage from '../utils/uploader/upload.js';
+import deleteImage from '../utils/uploader/deleteImage.js';
 
 export const getALlData = async (req, res) => {
     try {
@@ -73,6 +74,42 @@ export const addSeedsCategories = async (req, res) => {
         res.status(500).json({ message: 'Add category error', error: error.message });
     }
 };
+
+
+export const deleteCategoryById = async (req, res) => {
+    try {
+      const section = 'seeds';
+      const { id } = req.params;
+  
+      const doc = await User.findOne();
+      if (!doc) return res.status(404).json({ message: 'User document not found' });
+  
+      const categoryList = doc.data[section].data;
+
+      const categoryIndex = categoryList.findIndex(cat => cat._id.toString() === id);
+  
+      if (categoryIndex === -1) {
+        return res.status(404).json({ message: 'Category not found' });
+      }
+  
+      // Get Cloudinary public ID
+      const publicId = categoryList[categoryIndex].img?.id;
+  
+      // Delete from Cloudinary
+      if (publicId) {
+        await deleteImage(publicId);
+      }
+  
+      // Remove from array
+      categoryList.splice(categoryIndex, 1);
+  
+      await doc.save();
+  
+      res.status(200).json({ message: 'Category deleted successfully', categories: doc.data[section] });
+    } catch (error) {
+      res.status(500).json({ message: 'Delete category error', error: error.message });
+    }
+  };
 
 export const updateData = async (req, res) => {
     const { select, typeone, typetwo, description, img, name, id } = req.body;
