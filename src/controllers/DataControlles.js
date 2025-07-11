@@ -5,7 +5,6 @@ import User from '../models/Users.js';
 import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import uploadImage from '../utils/uploader/upload.js';
-import fs from 'fs/promises';
 
 export const getALlData = async (req, res) => {
     try {
@@ -51,7 +50,7 @@ export const addSeedsCategories = async (req, res) => {
             return res.status(404).json({ message: `Section '${section}' not found` });
         }
         const cat = doc.data[section].data;
-        const { url: imageUrl, public_id } = await uploadImage(file.path);
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
         
         const newCategory = {
             _id: new mongoose.Types.ObjectId(),
@@ -65,7 +64,6 @@ export const addSeedsCategories = async (req, res) => {
 
         cat.push(newCategory)
         await doc.save();
-        await fs.unlink(file.path);
         res.status(200).json({
             message: 'new category added successfully',
             categories: doc.data[section],

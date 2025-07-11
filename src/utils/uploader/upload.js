@@ -1,24 +1,25 @@
-// src/utils/uploadImage.js
 import cloudinary from "../../config/cloudinary/cloudinary.js";
+import streamifier from "streamifier";
 
-const uploadImage = async (filePath) => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder: "uploads",
-      format: "webp", // Convert to webp
-      transformation: [
-        { width: 500, height: 500, crop: "limit" }, // Resize max 500x500
-        { quality: "auto:low" }, // Compress image size
-      ],
-    });
+const uploadImage = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "uploads",
+        format: "webp",
+        transformation: [
+          { width: 500, height: 500, crop: "limit" },
+          { quality: "auto:low" },
+        ],
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve({ url: result.secure_url, public_id: result.public_id });
+      }
+    );
 
-    return {
-      url: result.secure_url,
-      public_id: result.public_id,
-    };
-  } catch (err) {
-    throw new Error("Cloudinary upload failed: " + err.message);
-  }
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 };
 
 export default uploadImage;

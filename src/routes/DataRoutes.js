@@ -7,22 +7,10 @@ import fs from 'fs';
 
 const router = express.Router();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Temporary local storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tempDir = path.join(__dirname, '../tempUploads');
-    fs.mkdirSync(tempDir, { recursive: true });
-    cb(null, tempDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
 
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/get-data', getALlData);
 //seeds
