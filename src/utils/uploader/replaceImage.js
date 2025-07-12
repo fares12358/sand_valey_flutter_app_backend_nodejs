@@ -1,6 +1,7 @@
 // src/utils/replaceImage.js
-import uploadImage from "./uploadImage.js";
+
 import deleteImage from "./deleteImage.js";
+import uploadImage from "./upload.js";
 
 const replaceImage = async (oldPublicId, newBuffer) => {
   try {
