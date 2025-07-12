@@ -32,7 +32,6 @@ export const getAllSeeds = async (req, res) => {
     }
 };
 
-
 export const addSeedsCategories = async (req, res) => {
     try {
         const section = 'seeds';
@@ -43,16 +42,16 @@ export const addSeedsCategories = async (req, res) => {
         if (!file) {
             return res.status(400).json({ message: 'Image file is required' });
         }
-        
+
         const doc = await User.findOne();
         if (!doc) return res.status(404).json({ message: 'User document not found' });
-        
+
         if (!doc.data[section]) {
             return res.status(404).json({ message: `Section '${section}' not found` });
         }
         const cat = doc.data[section].data;
         const { url: imageUrl, public_id } = await uploadImage(file.buffer);
-        
+
         const newCategory = {
             _id: new mongoose.Types.ObjectId(),
             img: {
@@ -75,72 +74,80 @@ export const addSeedsCategories = async (req, res) => {
     }
 };
 
-
 export const deleteCategoryById = async (req, res) => {
     try {
-      const section = 'seeds';
-      const { id } = req.params;
-  
-      const doc = await User.findOne();
-      if (!doc) return res.status(404).json({ message: 'User document not found' });
-  
-      const categoryList = doc.data[section].data;
+        const section = 'seeds';
+        const { id } = req.params;
 
-      const categoryIndex = categoryList.findIndex(cat => cat._id.toString() === id);
-  
-      if (categoryIndex === -1) {
-        return res.status(404).json({ message: 'Category not found' });
-      }
-  
-      // Get Cloudinary public ID
-      const publicId = categoryList[categoryIndex].img?.id;
-  
-      // Delete from Cloudinary
-      if (publicId) {
-        await deleteImage(publicId);
-      }
-  
-      // Remove from array
-      categoryList.splice(categoryIndex, 1);
-  
-      await doc.save();
-  
-      res.status(200).json({ message: 'Category deleted successfully', categories: doc.data[section] });
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: 'User document not found' });
+
+        const categoryList = doc.data[section].data;
+
+        const categoryIndex = categoryList.findIndex(cat => cat._id.toString() === id);
+
+        if (categoryIndex === -1) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        // Get Cloudinary public ID
+        const publicId = categoryList[categoryIndex].img?.id;
+
+        // Delete from Cloudinary
+        if (publicId) {
+            await deleteImage(publicId);
+        }
+        // Remove from array
+        categoryList.splice(categoryIndex, 1);
+
+        await doc.save();
+
+        res.status(200).json({ message: 'Category deleted successfully', categories: doc.data[section] });
     } catch (error) {
-      res.status(500).json({ message: 'Delete category error', error: error.message });
-    }
-  };
-
-export const updateData = async (req, res) => {
-    const { select, typeone, typetwo, description, img, name, id } = req.body;
-    try {
-        const Doc = await User.findOne();
-        if (!Doc) return res.status(404).json({ message: 'collection not found' });
-
-        // Find the specific user by _id in the array
-        const user = Doc.users.find(u => u._id.toString() === id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const data = Doc.data;
-
-    } catch (error) {
-        res.status(500).json({ message: 'Login error', error: error.message });
+        res.status(500).json({ message: 'Delete category error', error: error.message });
     }
 };
 
-export const DeleteData = async (req, res) => {
-    const { select, typeone, typetwo, description, img, name, id } = req.body;
+export const updateCategoryById = async (req, res) => {
     try {
-        const Doc = await User.findOne();
-        if (!Doc) return res.status(404).json({ message: 'collection not found' });
+        const section = "seeds";
+        const { id, name } = req.body;
+        const file = req.file;
 
-        // Find the specific user by _id in the array
-        const user = Doc.users.find(u => u._id.toString() === id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!file && !name) {
+            return res.status(400).json({ message: "No data provided for update" });
+        }
 
-        const data = Doc.data;
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: "User document not found" });
 
+        const categoryList = doc.data[section].data;
+        const categoryIndex = categoryList.findIndex((cat) => cat._id.toString() === id);
+
+        if (categoryIndex === -1) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const categoryItem = categoryList[categoryIndex];
+
+        if (name) {
+            categoryItem.name = name;
+        }
+
+        if (file) {
+            const publicId = categoryItem.img?.id;
+            const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
+            categoryItem.img.url = imageUrl;
+            categoryItem.img.id = public_id;
+        }
+
+        await doc.save();
+
+        res.status(200).json({
+            message: "Category updated successfully",
+            categories: doc.data[section],
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Login error', error: error.message });
+        res.status(500).json({ message: "Update error", error: error.message });
     }
 };

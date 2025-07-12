@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Image</title>
+  <title>Update Category</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,16 +26,16 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+      width: 300px;
     }
-    input, button {
+    input, select, button {
       padding: 10px;
       font-size: 16px;
       border-radius: 5px;
     }
-    input[type="file"] {
-      border: 1px solid #ccc;
-    }
-    input[type="text"] {
+    input[type="file"],
+    input[type="text"],
+    select {
       border: 1px solid #ccc;
     }
     button {
@@ -48,28 +48,35 @@
     #response {
       margin-top: 20px;
       font-size: 14px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>Upload Category Image</h1>
-  <form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" name="image" required />
-    <input type="text" name="name" placeholder="Category Name" value="طماطم" required />
-    <input type="text" name="id" placeholder="Parent Category ID" value="686fde5cdd731e3e74aef83e" required />
-    <button type="submit">Upload</button>
+  <h1>Update Category</h1>
+  <form id="updateForm" enctype="multipart/form-data">
+    <select name="section">
+      <option value="seeds">Seeds</option>
+      <option value="Fertilizer">Fertilizer</option>
+      <option value="Insecticide">Insecticide</option>
+      <option value="Communication">Communication</option>
+    </select>
+    <input type="text" name="id" placeholder="Category ID" required />
+    <input type="text" name="name" placeholder="New Category Name (optional)" />
+    <input type="file" name="image" />
+    <button type="submit">Update</button>
   </form>
   <div id="response"></div>
 
   <script>
-    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+    document.getElementById('updateForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const form = e.target;
       const formData = new FormData(form);
 
       try {
-        const response = await fetch('https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/add-seeds-categories', {
-          method: 'POST',
+        const response = await fetch('http://localhost:5000/api/auth/update-seeds-categories', {
+          method: 'PUT',
           body: formData
         });
 
@@ -86,7 +93,7 @@
 
         console.log(result);
       } catch (error) {
-        console.error('Upload failed:', error);
+        console.error('Update failed:', error);
         document.getElementById('response').style.color = 'red';
         document.getElementById('response').textContent = '❌ Network or server error';
       }
