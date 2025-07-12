@@ -17,7 +17,7 @@ router.get('/get-data', getALlData);
 router.get('/get-seeds-data', getAllSeeds);
 router.post('/add-seeds-categories', upload.single('image'), addSeedsCategories);
 router.delete('/delete-seeds-categories/:id', deleteCategoryById);
-router.put('/update-seeds-categories',upload.single('image'), updateCategoryById);
+router.post('/update-seeds-categories',upload.single('image'), updateCategoryById);
 
 
 export default router;
