@@ -6,6 +6,7 @@ import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import uploadImage from '../utils/uploader/upload.js';
 import deleteImage from '../utils/uploader/deleteImage.js';
+import replaceImage from '../utils/uploader/replaceImage.js';
 
 export const getALlData = async (req, res) => {
     try {
