@@ -20,6 +20,7 @@ export const getALlData = async (req, res) => {
     }
 };
 
+//seeds main categories
 export const getAllSeeds = async (req, res) => {
     try {
         const doc = await User.findOne();
@@ -152,3 +153,138 @@ export const updateCategoryById = async (req, res) => {
         res.status(500).json({ message: "Update error", error: error.message });
     }
 };
+
+// seeds main type subCat
+export const getSeedsTypeByID = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        const seeds = doc.data.seeds.data;
+        const seedsType = seeds.find((m) => m._id.toString() === id);
+
+        if (!seedsType) {
+            return res.status(404).json({ message: 'Seed category not found' });
+        }
+
+        res.status(200).json({ data: seedsType });
+
+    } catch (error) {
+        res.status(500).json({ message: "get seeds type error", error: error.message });
+    }
+}
+
+export const addSeedsTypeByID = async (req, res) => {
+    try {
+        const { id, name } = req.body;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        const seeds = doc.data.seeds.data;
+        const seedsCat = seeds.find((m) => m._id.toString() === id);
+
+        if (!seedsCat) {
+            return res.status(404).json({ message: 'Seed category not found' });
+        }
+        const SubCat = seedsCat.Type;
+        const newSubCat = {
+            _id: new mongoose.Types.ObjectId(),
+            name,
+        }
+        SubCat.push(newSubCat);
+        await doc.save();
+        res.status(200).json({ data: seedsCat, message: "adding subCategory successfully" });
+
+    } catch (error) {
+        res.status(500).json({ message: "get seeds type error", error: error.message });
+    }
+}
+
+export const deleteSeedsTypeByID = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        const seeds = doc.data.seeds.data;
+        let found = false;
+
+        // Loop through all seeds categories
+        for (const cat of seeds) {
+            const typeIndex = cat.Type.findIndex(
+                (sub) => sub._id.toString() === id
+            );
+
+            if (typeIndex !== -1) {
+                cat.Type.splice(typeIndex, 1); // remove the subcategory
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return res.status(404).json({ message: 'Subcategory not found' });
+        }
+
+        await doc.save();
+
+        res.status(200).json({ message: 'Subcategory deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Delete subcategory error', error: error.message });
+    }
+};
+
+export const updateSeedsTypeByID = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, img, description } = req.body;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No user found' });
+        }
+
+        const seeds = doc.data.seeds.data;
+        let updated = false;
+
+        for (const cat of seeds) {
+            const typeItem = cat.Type.find(sub => sub._id.toString() === id);
+            if (typeItem) {
+                if (name) typeItem.name = name;
+                if (img) typeItem.img = img;
+
+                if (description) {
+                    typeItem.description = {
+                        ...typeItem.description,
+                        ...description
+                    };
+                }
+
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            return res.status(404).json({ message: 'Subcategory not found' });
+        }
+
+        await doc.save();
+        res.status(200).json({ message: '✅ Subcategory updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Update error', error: error.message });
+    }
+};
+
+// seeds type desc
+
