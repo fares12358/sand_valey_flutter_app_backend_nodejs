@@ -247,7 +247,7 @@ export const deleteSeedsTypeByID = async (req, res) => {
 export const updateSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, img, description } = req.body;
+        const { name  } = req.body;
 
         const doc = await User.findOne();
         if (!doc) {
@@ -261,15 +261,6 @@ export const updateSeedsTypeByID = async (req, res) => {
             const typeItem = cat.Type.find(sub => sub._id.toString() === id);
             if (typeItem) {
                 if (name) typeItem.name = name;
-                if (img) typeItem.img = img;
-
-                if (description) {
-                    typeItem.description = {
-                        ...typeItem.description,
-                        ...description
-                    };
-                }
-
                 updated = true;
                 break;
             }
