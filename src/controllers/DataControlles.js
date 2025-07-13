@@ -247,7 +247,7 @@ export const deleteSeedsTypeByID = async (req, res) => {
 export const updateSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name  } = req.body;
+        const { name } = req.body;
 
         const doc = await User.findOne();
         if (!doc) {
@@ -277,5 +277,139 @@ export const updateSeedsTypeByID = async (req, res) => {
     }
 };
 
-// seeds type desc
+// seeds  descreption// ✅ Get the full subcategory (Type) including description by its ID
+export const getSeedsDescreptionById = async (req, res) => {
+    try {
+        const { id } = req.params; // ✅ use req.params not res.params
 
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        const seeds = doc.data.seeds.data;
+
+        // 🔍 Loop through each category to find the Type with matching ID
+        let foundType = null;
+        for (const cat of seeds) {
+            const match = cat.Type.find(type => type._id.toString() === id);
+            if (match) {
+                foundType = match;
+                break;
+            }
+        }
+
+        if (!foundType) {
+            return res.status(404).json({ message: 'Subcategory not found' });
+        }
+
+        res.status(200).json({ data: foundType }); // includes full description object
+    } catch (error) {
+        res.status(500).json({ message: 'Fetch error', error: error.message });
+    }
+};
+
+export const addSubCategoryDescription = async (req, res) => {
+    try {
+        const { id } = req.params; // Subcategory (Type[]) _id
+        const { name, company, description } = req.body;
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: 'User not found' });
+
+        const seeds = doc.data.seeds.data;
+        let found = false;
+
+        for (const category of seeds) {
+            const subcategory = category.Type.find(type => type._id.toString() === id);
+
+            if (subcategory) {
+                // Overwrite or add description
+                subcategory.description = {
+                    name: name || '',
+                    company: company || '',
+                    description: description || '',
+                };
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return res.status(404).json({ message: 'Subcategory not found' });
+        }
+
+        await doc.save();
+        res.status(200).json({ message: '✅ Description added successfully' });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to add description', error: error.message });
+    }
+};
+
+export const updateSubCategoryDescription = async (req, res) => {
+    try {
+        const { id } = req.params; // this is the subcategory (_id) from Type[]
+        const { name, company, description } = req.body;
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: 'User not found' });
+
+        const seeds = doc.data.seeds.data;
+        let updated = false;
+
+        for (const category of seeds) {
+            const subcategory = category.Type.find((type) => type._id.toString() === id);
+            if (subcategory) {
+                // If description doesn't exist yet, create it
+                if (!subcategory.description) {
+                    subcategory.description = {};
+                }
+
+                if (name !== undefined) subcategory.description.name = name;
+                if (company !== undefined) subcategory.description.company = company;
+                if (description !== undefined) subcategory.description.description = description;
+
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) return res.status(404).json({ message: 'Subcategory not found' });
+
+        await doc.save();
+        res.status(200).json({ message: '✅ Description updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to update description', error: error.message });
+    }
+};
+export const deleteSubCategoryDescriptionById = async (req, res) => {
+    try {
+      const { id } = req.params; // subcategory (_id in Type[]) to find
+  
+      const doc = await User.findOne();
+      if (!doc) return res.status(404).json({ message: 'No user found' });
+  
+      const seeds = doc.data.seeds.data;
+      let found = false;
+  
+      for (const cat of seeds) {
+        const subcategory = cat.Type.find(type => type._id.toString() === id);
+        if (subcategory && subcategory.description) {
+          subcategory.description = undefined; // remove the entire object
+          found = true;
+          break;
+        }
+      }
+  
+      if (!found) {
+        return res.status(404).json({ message: 'Description not found or already deleted' });
+      }
+  
+      await doc.save();
+      res.status(200).json({ message: '✅ Description deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: '❌ Failed to delete description', error: error.message });
+    }
+  };
+  
