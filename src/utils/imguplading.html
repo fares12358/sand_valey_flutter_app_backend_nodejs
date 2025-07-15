@@ -62,6 +62,7 @@
       <option value="Communication">Communication</option>
     </select>
     <input type="text" name="id" placeholder="Category ID" required />
+    <input type="text" name="phone" placeholder="Phone" required />
     <input type="text" name="name" placeholder="New Category Name (optional)" />
     <input type="file" name="image" />
     <button type="submit">Update</button>
@@ -75,8 +76,8 @@
       const formData = new FormData(form);
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/update-seeds-categories', {
-          method: 'PUT',
+        const response = await fetch('http://localhost:5000/api/auth/add-eng-data', {
+          method: 'POST',
           body: formData
         });
 

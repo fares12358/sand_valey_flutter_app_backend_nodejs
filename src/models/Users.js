@@ -33,11 +33,17 @@ const userSchema = new mongoose.Schema({
             {
               //subcat
               _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-              img: { type: String },
+              img: {
+                url: { type: String },
+                id: { type: String },
+              },
               name: { type: String },
               description: {
                 //desc
-                img: { type: String },
+                img: {
+                  url: { type: String },
+                  id: { type: String },
+                },
                 name: { type: String },
                 company: { type: String },
                 description: { type: String }
@@ -103,23 +109,23 @@ const userSchema = new mongoose.Schema({
       _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
       data: [
         {
-          //cat
+          //place
           _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-          img: { type: String },
+          img: {
+            url: { type: String },
+            id: { type: String },
+          },
           name: { type: String },
-          Type: [
+          eng: [
             {
-              //subcat
-              img: { type: String },
-              name: { type: String },
+              //eng data
               _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-              description: {
-                //desc
-                img: { type: String },
-                name: { type: String },
-                company: { type: String },
-                description: { type: String }
-              }
+              img: {
+                url: { type: String },
+                id: { type: String },
+              },
+              name: { type: String },
+              phone: { type: String },
             }
           ]
         }

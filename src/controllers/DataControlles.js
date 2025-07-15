@@ -33,7 +33,6 @@ export const getAllSeeds = async (req, res) => {
         res.status(500).json({ message: 'fitch data error', error: error.message });
     }
 };
-
 export const addSeedsCategories = async (req, res) => {
     try {
         const section = 'seeds';
@@ -75,7 +74,6 @@ export const addSeedsCategories = async (req, res) => {
         res.status(500).json({ message: 'Add category error', error: error.message });
     }
 };
-
 export const deleteCategoryById = async (req, res) => {
     try {
         const section = 'seeds';
@@ -109,7 +107,6 @@ export const deleteCategoryById = async (req, res) => {
         res.status(500).json({ message: 'Delete category error', error: error.message });
     }
 };
-
 export const updateCategoryById = async (req, res) => {
     try {
         const section = "seeds";
@@ -177,7 +174,6 @@ export const getSeedsTypeByID = async (req, res) => {
         res.status(500).json({ message: "get seeds type error", error: error.message });
     }
 }
-
 export const addSeedsTypeByID = async (req, res) => {
     try {
         const { id, name } = req.body;
@@ -206,7 +202,6 @@ export const addSeedsTypeByID = async (req, res) => {
         res.status(500).json({ message: "get seeds type error", error: error.message });
     }
 }
-
 export const deleteSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
@@ -243,7 +238,6 @@ export const deleteSeedsTypeByID = async (req, res) => {
         res.status(500).json({ message: 'Delete subcategory error', error: error.message });
     }
 };
-
 export const updateSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
@@ -308,7 +302,6 @@ export const getSeedsDescreptionById = async (req, res) => {
         res.status(500).json({ message: 'Fetch error', error: error.message });
     }
 };
-
 export const addSubCategoryDescription = async (req, res) => {
     try {
         const { id } = req.params; // Subcategory (Type[]) _id
@@ -346,7 +339,6 @@ export const addSubCategoryDescription = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to add description', error: error.message });
     }
 };
-
 export const updateSubCategoryDescription = async (req, res) => {
     try {
         const { id } = req.params; // this is the subcategory (_id) from Type[]
@@ -385,31 +377,154 @@ export const updateSubCategoryDescription = async (req, res) => {
 };
 export const deleteSubCategoryDescriptionById = async (req, res) => {
     try {
-      const { id } = req.params; // subcategory (_id in Type[]) to find
+        const { id } = req.params; // subcategory (_id in Type[]) to find
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: 'No user found' });
+
+        const seeds = doc.data.seeds.data;
+        let found = false;
+
+        for (const cat of seeds) {
+            const subcategory = cat.Type.find(type => type._id.toString() === id);
+            if (subcategory && subcategory.description) {
+                subcategory.description = undefined; // remove the entire object
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return res.status(404).json({ message: 'Description not found or already deleted' });
+        }
+
+        await doc.save();
+        res.status(200).json({ message: '✅ Description deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to delete description', error: error.message });
+    }
+};
+
+//Communication
+export const getAllCommunication = async (req, res) => {
+    try {
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const comm = doc.data.Communication;
+        res.status(200).json({ data: comm });
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to get Communication', error: error.message });
+    }
+}
+
+//add Communication
+export const addCommunication = async (req, res) => {
+    try {
+        const { name } = req.body;
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const comm = doc.data.Communication.data;
+        const newCommunicationt = {
+            _id: new mongoose.Types.ObjectId(),
+            name,
+            eng: [],
+        }
+        comm.push(newCommunicationt);
+        await doc.save();
+        res.status(200).json({ data: comm });
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to add Communication', error: error.message });
+    }
+}
+//add eng 
+export const addEngCommunication = async (req, res) => {
+    try {
+        const { id, name, phone } = req.body;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ message: '❌ Image file is required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ No users found' });
+        }
+
+        const communication = doc.data.Communication.data;
+
+        // ✅ Fix: Properly compare the id as string
+        const place = communication.find(place => place._id.toString() === id);
+
+        if (!place) {
+            return res.status(404).json({ message: '❌ Place not found' });
+        }
+
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+
+        const newEngineer = {
+            _id: new mongoose.Types.ObjectId(),
+            name,
+            phone,
+            img: {
+                url: imageUrl,
+                id: public_id,
+            }
+        };
+
+        place.eng.push(newEngineer);
+
+        await doc.save();
+
+        res.status(200).json({
+            message: '✅ Engineer added successfully',
+            data: newEngineer
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to add engineer',
+            error: error.message
+        });
+    }
+};
+//get eng
+export const getEngCommunicationById = async (req, res) => {
+    try {
+      const { id, EngId } = req.params;
   
       const doc = await User.findOne();
-      if (!doc) return res.status(404).json({ message: 'No user found' });
-  
-      const seeds = doc.data.seeds.data;
-      let found = false;
-  
-      for (const cat of seeds) {
-        const subcategory = cat.Type.find(type => type._id.toString() === id);
-        if (subcategory && subcategory.description) {
-          subcategory.description = undefined; // remove the entire object
-          found = true;
-          break;
-        }
+      if (!doc) {
+        return res.status(404).json({ message: '❌ No users found' });
       }
   
-      if (!found) {
-        return res.status(404).json({ message: 'Description not found or already deleted' });
+      const communication = doc.data.Communication.data;
+      const place = communication.find(place => place._id.toString() === id);
+  
+      if (!place) {
+        return res.status(404).json({ message: '❌ Place not found' });
       }
   
-      await doc.save();
-      res.status(200).json({ message: '✅ Description deleted successfully' });
+      const eng = place.eng.find((m) => m._id.toString() === EngId);
+  
+      if (!eng) {
+        return res.status(404).json({ message: '❌ Engineer not found' });
+      }
+  
+      res.status(200).json({
+        message: '✅ Engineer fetched successfully',
+        data: eng
+      });
+  
     } catch (error) {
-      res.status(500).json({ message: '❌ Failed to delete description', error: error.message });
+      res.status(500).json({
+        message: '❌ Failed to get engineer',
+        error: error.message
+      });
     }
   };
   
