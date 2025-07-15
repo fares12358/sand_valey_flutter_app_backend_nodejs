@@ -33,7 +33,7 @@ router.post('/add-communication-data', addCommunication);
 
 //eng
 router.post('/add-eng-data', upload.single('image'), addEngCommunication);
-router.get('/communication/:id/eng/:EngId', getEngCommunicationById);
+router.get('/get-communication-eng/:id', getEngCommunicationById);
 
 
 
