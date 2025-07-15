@@ -405,7 +405,7 @@ export const deleteSubCategoryDescriptionById = async (req, res) => {
     }
 };
 
-//Communication
+//Comunication
 export const getAllCommunication = async (req, res) => {
     try {
         const doc = await User.findOne();
@@ -418,7 +418,6 @@ export const getAllCommunication = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to get Communication', error: error.message });
     }
 }
-
 //add Communication
 export const addCommunication = async (req, res) => {
     try {
@@ -492,10 +491,10 @@ export const addEngCommunication = async (req, res) => {
         });
     }
 };
-//get eng
+//get engs for place by id 
 export const getEngCommunicationById = async (req, res) => {
     try {
-      const { id, EngId } = req.params;
+      const { id } = req.params;
   
       const doc = await User.findOne();
       if (!doc) {
@@ -509,15 +508,9 @@ export const getEngCommunicationById = async (req, res) => {
         return res.status(404).json({ message: '❌ Place not found' });
       }
   
-      const eng = place.eng.find((m) => m._id.toString() === EngId);
-  
-      if (!eng) {
-        return res.status(404).json({ message: '❌ Engineer not found' });
-      }
-  
       res.status(200).json({
         message: '✅ Engineer fetched successfully',
-        data: eng
+        data: place
       });
   
     } catch (error) {
