@@ -32,6 +32,30 @@ export const getmainCat = async (req, res) => {
         res.status(500).json({ message: 'fitch data error', error: error.message });
     }
 }
+
+export const addmainCat = async (req, res) => {
+    try {
+        const { section } = req.body;
+        const file = req.file;
+        const doc = await User.findOne();
+        if (!file) {
+            return res.status(404).json({ message: 'No file found' });
+        }
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const main = doc.data.main;
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+        main[section].img.url = imageUrl;
+        main[section].img.id = public_id;
+        await doc.save();
+
+        res.status(200).json({ data: main });
+    } catch (error) {
+        res.status(500).json({ message: 'fitch data error', error: error.message });
+    }
+}
+
 export const UpdatemainCat = async (req, res) => {
     try {
         const { section } = req.body;
@@ -49,7 +73,7 @@ export const UpdatemainCat = async (req, res) => {
         const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
         main[section].img.url = imageUrl;
         main[section].img.id = public_id;
-        
+
         await doc.save();
 
         res.status(200).json({ data: main });

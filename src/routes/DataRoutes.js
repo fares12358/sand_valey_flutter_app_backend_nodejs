@@ -1,5 +1,5 @@
 import express from 'express';
-import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat } from '../controllers/DataControlles.js';
+import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat } from '../controllers/DataControlles.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -7,7 +7,8 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 //mian
 router.get("/get-main-categories",getmainCat)
-router.post("/update-main-categories",UpdatemainCat)
+router.post("/add-main-categories",upload.single('image'),addmainCat)
+router.post("/update-main-categories",upload.single('image'),UpdatemainCat)
 //data
 router.get('/get-data', getALlData);
 //seeds cat main
