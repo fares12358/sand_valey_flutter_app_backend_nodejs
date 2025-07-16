@@ -20,7 +20,45 @@ export const getALlData = async (req, res) => {
     }
 };
 
-//seeds main categories
+export const getmainCat = async (req, res) => {
+    try {
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const main = doc.data.main;
+        res.status(200).json({ data: main });
+    } catch (error) {
+        res.status(500).json({ message: 'fitch data error', error: error.message });
+    }
+}
+export const UpdatemainCat = async (req, res) => {
+    try {
+        const { section } = req.body;
+        const file = req.file;
+        const doc = await User.findOne();
+        if (!file) {
+            return res.status(404).json({ message: 'No file found' });
+        }
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const main = doc.data.main;
+
+        const publicId = main[section].img?.id;
+        const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
+        main[section].img.url = imageUrl;
+        main[section].img.id = public_id;
+        
+        await doc.save();
+
+        res.status(200).json({ data: main });
+    } catch (error) {
+        res.status(500).json({ message: 'fitch data error', error: error.message });
+    }
+}
+
+//seeds categories
 export const getAllSeeds = async (req, res) => {
     try {
         const doc = await User.findOne();
@@ -150,7 +188,6 @@ export const updateCategoryById = async (req, res) => {
         res.status(500).json({ message: "Update error", error: error.message });
     }
 };
-
 // seeds main type subCat
 export const getSeedsTypeByID = async (req, res) => {
     try {
@@ -439,6 +476,59 @@ export const addCommunication = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to add Communication', error: error.message });
     }
 }
+//update communication 
+export const updateCommunication = async (req, res) => {
+    try {
+        const { id, name } = req.body;
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+        const comm = doc.data.Communication.data;
+        const selcted = comm.find((m) => m._id.toString() === id);
+        if (name) {
+            selcted.name = name;
+        }
+        await doc.save();
+        res.status(200).json({ data: comm });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to update engineer',
+            error: error.message
+        });
+    }
+}
+//delete communication
+export const deleteCommunication = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ No users found' });
+        }
+
+        const comm = doc.data.Communication.data;
+        const initialLength = comm.length;
+
+        // Filter out the item to delete
+        doc.data.Communication.data = comm.filter((item) => item._id.toString() !== id);
+
+        if (doc.data.Communication.data.length === initialLength) {
+            return res.status(404).json({ message: '❌ Communication item not found' });
+        }
+
+        await doc.save();
+        res.status(200).json({ message: '✅ Communication deleted successfully', data: doc.data.Communication.data });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to delete communication',
+            error: error.message
+        });
+    }
+};
 //add eng 
 export const addEngCommunication = async (req, res) => {
     try {
@@ -494,30 +584,103 @@ export const addEngCommunication = async (req, res) => {
 //get engs for place by id 
 export const getEngCommunicationById = async (req, res) => {
     try {
-      const { id } = req.params;
-  
-      const doc = await User.findOne();
-      if (!doc) {
-        return res.status(404).json({ message: '❌ No users found' });
-      }
-  
-      const communication = doc.data.Communication.data;
-      const place = communication.find(place => place._id.toString() === id);
-  
-      if (!place) {
-        return res.status(404).json({ message: '❌ Place not found' });
-      }
-  
-      res.status(200).json({
-        message: '✅ Engineer fetched successfully',
-        data: place
-      });
-  
+        const { id } = req.params;
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ No users found' });
+        }
+
+        const communication = doc.data.Communication.data;
+        const place = communication.find(place => place._id.toString() === id);
+
+        if (!place) {
+            return res.status(404).json({ message: '❌ Place not found' });
+        }
+
+        res.status(200).json({
+            message: '✅ Engineer fetched successfully',
+            data: place
+        });
+
     } catch (error) {
-      res.status(500).json({
-        message: '❌ Failed to get engineer',
-        error: error.message
-      });
+        res.status(500).json({
+            message: '❌ Failed to get engineer',
+            error: error.message
+        });
     }
-  };
-  
+};
+
+export const updateEngById = async (req, res) => {
+    try {
+        const { placeId, engId } = req.params; // place _id and engineer _id from params
+        const { name, phone } = req.body;
+        const file = req.file;
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ No users found' });
+
+        const communication = doc.data.Communication.data;
+        const place = communication.find(p => p._id.toString() === placeId);
+        if (!place) return res.status(404).json({ message: '❌ Place not found' });
+
+        const eng = place.eng.find(e => e._id.toString() === engId);
+        if (!eng) return res.status(404).json({ message: '❌ Engineer not found' });
+
+        if (name) eng.name = name;
+        if (phone) eng.phone = phone;
+
+        if (file) {
+            const publicId = eng.img?.id;
+            const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
+            eng.img.url = imageUrl;
+            eng.img.id = public_id;
+        }
+
+        await doc.save();
+
+        res.status(200).json({
+            message: '✅ Engineer updated successfully',
+            data: eng,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to update engineer',
+            error: error.message,
+        });
+    }
+};
+
+export const deleteEngById = async (req, res) => {
+    try {
+        const { placeId, engId } = req.params;
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ No users found' });
+
+        const communication = doc.data.Communication.data;
+        const place = communication.find(p => p._id.toString() === placeId);
+        if (!place) return res.status(404).json({ message: '❌ Place not found' });
+
+        const initialLength = place.eng.length;
+        place.eng = place.eng.filter(e => e._id.toString() !== engId);
+
+        if (place.eng.length === initialLength) {
+            return res.status(404).json({ message: '❌ Engineer not found' });
+        }
+
+        await doc.save();
+
+        res.status(200).json({
+            message: '✅ Engineer deleted successfully',
+            data: place.eng,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to delete engineer',
+            error: error.message,
+        });
+    }
+};

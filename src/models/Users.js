@@ -131,6 +131,32 @@ const userSchema = new mongoose.Schema({
         }
       ]
     },
+    main: {
+      seeds: {
+        img: {
+          url: { type: String },
+          id: { type: String },
+        }
+      },
+      Fertilizer: {
+        img: {
+          url: { type: String },
+          id: { type: String },
+        }
+      },
+      Insecticide: {
+        img: {
+          url: { type: String },
+          id: { type: String },
+        }
+      },
+      Communication: {
+        img: {
+          url: { type: String },
+          id: { type: String },
+        }
+      }
+    }
   }
 }, { timestamps: true });
 
