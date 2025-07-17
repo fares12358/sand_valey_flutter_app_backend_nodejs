@@ -678,33 +678,40 @@ export const updateEngById = async (req, res) => {
 
 export const deleteEngById = async (req, res) => {
     try {
-        const { placeId, engId } = req.params;
-
-        const doc = await User.findOne();
-        if (!doc) return res.status(404).json({ message: '❌ No users found' });
-
-        const communication = doc.data.Communication.data;
-        const place = communication.find(p => p._id.toString() === placeId);
-        if (!place) return res.status(404).json({ message: '❌ Place not found' });
-
-        const initialLength = place.eng.length;
-        place.eng = place.eng.filter(e => e._id.toString() !== engId);
-
-        if (place.eng.length === initialLength) {
-            return res.status(404).json({ message: '❌ Engineer not found' });
-        }
-
-        await doc.save();
-
-        res.status(200).json({
-            message: '✅ Engineer deleted successfully',
-            data: place.eng,
-        });
-
+      const { placeId, engId } = req.params;
+  
+      const doc = await User.findOne();
+      if (!doc) return res.status(404).json({ message: '❌ No users found' });
+  
+      const communication = doc.data.Communication.data;
+      const place = communication.find(p => p._id.toString() === placeId);
+      if (!place) return res.status(404).json({ message: '❌ Place not found' });
+  
+      // Find the engineer to delete
+      const engineer = place.eng.find(e => e._id.toString() === engId);
+      if (!engineer) return res.status(404).json({ message: '❌ Engineer not found' });
+  
+      // Delete image from cloud if exists
+      const publicId = engineer.img?.id;
+      if (publicId) {
+        await deleteImage(publicId);
+      }
+  
+      // Remove engineer from array
+      place.eng = place.eng.filter(e => e._id.toString() !== engId);
+  
+      await doc.save();
+  
+      res.status(200).json({
+        message: '✅ Engineer deleted successfully',
+        data: place.eng,
+      });
+  
     } catch (error) {
-        res.status(500).json({
-            message: '❌ Failed to delete engineer',
-            error: error.message,
-        });
+      res.status(500).json({
+        message: '❌ Failed to delete engineer',
+        error: error.message,
+      });
     }
-};
+  };
+  
