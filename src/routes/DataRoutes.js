@@ -1,5 +1,5 @@
 import express from 'express';
-import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat } from '../controllers/DataControlles.js';
+import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType } from '../controllers/DataControlles.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -36,5 +36,16 @@ router.post('/add-eng-data', upload.single('image'), addEngCommunication);
 router.get('/get-communication-eng/:id', getEngCommunicationById);
 router.post('/update-communication-eng/:placeId/:engId', upload.single('image'), updateEngById);
 router.delete('/delete-communication-eng/:placeId/:engId', deleteEngById);
+//insecticide 
+router.get('/get-insecticide-data', getInsecticideData);
+router.post('/add-insecticide-data', upload.single('image'), addInsecticideData);
+router.delete('/delete-insecticide-data/:id', deleteInsecticideData);
+router.post('/update-insecticide-data', updateInsecticideData);
+//insecticide type
+router.get('/get-insecticide-type/:catId', getInsecticideTypes);
+router.post('/add-insecticide-type', upload.single('image'), addInsecticideType);
+router.post('/update-insecticide-type/:catId/:typeId', upload.single('image'), updateInsecticideType);
+router.delete('/delete-insecticide-type/:catId/:typeId', deleteInsecticideType);
+
 
 export default router;

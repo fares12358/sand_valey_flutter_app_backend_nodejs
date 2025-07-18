@@ -85,21 +85,21 @@ const userSchema = new mongoose.Schema({
         {
           //cat
           _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-          img: { type: String },
+          img: {
+            url: { type: String },
+            id: { type: String },
+          },
           name: { type: String },
           Type: [
             {
               //subcat
-              img: { type: String },
-              name: { type: String },
               _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-              description: {
-                //desc
-                img: { type: String },
-                name: { type: String },
-                company: { type: String },
-                description: { type: String }
-              }
+              name: { type: String },
+              img: {
+                url: { type: String },
+                id: { type: String },
+              },
+              description: { type: String },
             }
           ]
         }
