@@ -303,8 +303,7 @@ export const deleteSeedsTypeByID = async (req, res) => {
 };
 export const updateSeedsTypeByID = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name } = req.body;
+        const { name,id } = req.body;
         const file = req.file;
         const doc = await User.findOne();
         if (!doc) {
