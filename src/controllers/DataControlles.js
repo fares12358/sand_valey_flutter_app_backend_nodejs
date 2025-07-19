@@ -922,13 +922,13 @@ export const addInsecticideType = async (req, res) => {
         const category = doc.data.Insecticide.data.find(cat => cat._id.toString() === id);
         if (!category) return res.status(404).json({ message: '❌ Category not found' });
 
-        const { url, public_id } = await uploadImage(file.buffer);
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
 
         const newType = {
             _id: new mongoose.Types.ObjectId(),
             name,
             description,
-            img: { url, id: public_id },
+            img: { url:imageUrl, id: public_id },
             company
         };
 

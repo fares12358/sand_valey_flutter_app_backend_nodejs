@@ -95,10 +95,6 @@ const userSchema = new mongoose.Schema({
               //subcat
               _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
               name: { type: String },
-              img: {
-                url: { type: String },
-                id: { type: String },
-              },
               description: { type: String },
               company: { type: String },
             }
