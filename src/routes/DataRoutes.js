@@ -18,9 +18,9 @@ router.delete('/delete-seeds-categories/:id', deleteCategoryById);
 router.post('/update-seeds-categories', upload.single('image'), updateCategoryById);
 //subCat seeds type
 router.get('/get-seeds-type/:id', getSeedsTypeByID);
-router.post('/add-seeds-type', upload.single('image'),  addSeedsTypeByID);
+router.post('/add-seeds-type', upload.single('image'), addSeedsTypeByID);
 router.delete('/delete-seeds-type/:id', deleteSeedsTypeByID);
-router.post('/update-seeds-type', upload.single('image'),  updateSeedsTypeByID);
+router.post('/update-seeds-type', upload.single('image'), updateSeedsTypeByID);
 //seeds desc
 router.get('/get-seeds-description/:id', getSeedsDescreptionById);
 router.post('/add-seeds-description/:id', addSubCategoryDescription); // id = category id

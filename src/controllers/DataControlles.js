@@ -267,75 +267,89 @@ export const addSeedsTypeByID = async (req, res) => {
 }
 export const deleteSeedsTypeByID = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const doc = await User.findOne();
-        if (!doc) {
-            return res.status(404).json({ message: 'No users found' });
+      const { id } = req.params;
+  
+      const doc = await User.findOne();
+      if (!doc) {
+        return res.status(404).json({ message: '❌ No users found' });
+      }
+  
+      const seeds = doc.data.seeds.data;
+      let found = false;
+  
+      for (const cat of seeds) {
+        const typeIndex = cat.Type.findIndex(sub => sub._id.toString() === id);
+        if (typeIndex !== -1) {
+          const publicId = cat.Type[typeIndex].img?.id;
+  
+          if (publicId) {
+            await deleteImage(publicId);
+          }
+  
+          cat.Type.splice(typeIndex, 1); // Remove subcategory
+          found = true;
+          break;
         }
-
-        const seeds = doc.data.seeds.data;
-        let found = false;
-
-        // Loop through all seeds categories
-        for (const cat of seeds) {
-            const typeIndex = cat.Type.findIndex(
-                (sub) => sub._id.toString() === id
-            );
-
-            if (typeIndex !== -1) {
-                cat.Type.splice(typeIndex, 1); // remove the subcategory
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return res.status(404).json({ message: 'Subcategory not found' });
-        }
-
-        await doc.save();
-
-        res.status(200).json({ message: 'Subcategory deleted successfully' });
+      }
+  
+      if (!found) {
+        return res.status(404).json({ message: '❌ Subcategory not found' });
+      }
+  
+      await doc.save();
+  
+      res.status(200).json({ message: '✅ Subcategory deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Delete subcategory error', error: error.message });
+      res.status(500).json({
+        message: '❌ Delete subcategory error',
+        error: error.message,
+      });
     }
-};
-export const updateSeedsTypeByID = async (req, res) => {
+  };
+  export const updateSeedsTypeByID = async (req, res) => {
     try {
-        const { name,id } = req.body;
-        const file = req.file;
-        const doc = await User.findOne();
-        if (!doc) {
-            return res.status(404).json({ message: 'No user found' });
+      const { name, id } = req.body;
+      const file = req.file;
+  
+      const doc = await User.findOne();
+      if (!doc) {
+        return res.status(404).json({ message: '❌ No user found' });
+      }
+  
+      const seeds = doc.data.seeds.data;
+      let updated = false;
+  
+      for (const cat of seeds) {
+        const typeItem = cat.Type.find(sub => sub._id.toString() === id);
+        if (typeItem) {
+          if (name) typeItem.name = name;
+  
+          if (file) {
+            const publicId = typeItem.img?.id;
+            const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
+            typeItem.img.url = imageUrl;
+            typeItem.img.id = public_id;
+          }
+  
+          updated = true;
+          break;
         }
-
-        const seeds = doc.data.seeds.data;
-        let updated = false;
-
-        for (const cat of seeds) {
-            const typeItem = cat.Type.find(sub => sub._id.toString() === id);
-            if (typeItem) {
-                if (name) typeItem.name = name;
-                if (file) {
-                    const publicId = typeItem.img?.id;
-                    const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
-                    categoryItem.img.url = imageUrl;
-                    categoryItem.img.id = public_id;
-                }
-                updated = true;
-                break;
-            }
-        }
-        if (!updated) {
-            return res.status(404).json({ message: 'Subcategory not found' });
-        }
-        await doc.save();
-        res.status(200).json({ message: '✅ Subcategory updated successfully' });
+      }
+  
+      if (!updated) {
+        return res.status(404).json({ message: '❌ Subcategory not found' });
+      }
+  
+      await doc.save();
+      res.status(200).json({ message: '✅ Subcategory updated successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Update error', error: error.message });
+      res.status(500).json({
+        message: '❌ Update error',
+        error: error.message,
+      });
     }
-};
+  };
+  
 // seeds  descreption// ✅ Get the full subcategory (Type) including description by its ID
 export const getSeedsDescreptionById = async (req, res) => {
     try {
