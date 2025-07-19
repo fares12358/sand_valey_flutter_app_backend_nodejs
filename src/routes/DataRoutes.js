@@ -20,7 +20,7 @@ router.post('/update-seeds-categories', upload.single('image'), updateCategoryBy
 router.get('/get-seeds-type/:id', getSeedsTypeByID);
 router.post('/add-seeds-type', upload.single('image'),  addSeedsTypeByID);
 router.delete('/delete-seeds-type/:id', deleteSeedsTypeByID);
-router.put('/update-seeds-type/:id', upload.single('image'),  updateSeedsTypeByID);
+router.post('/update-seeds-type/:id', upload.single('image'),  updateSeedsTypeByID);
 //seeds desc
 router.get('/get-seeds-description/:id', getSeedsDescreptionById);
 router.post('/add-seeds-description/:id', addSubCategoryDescription); // id = category id
