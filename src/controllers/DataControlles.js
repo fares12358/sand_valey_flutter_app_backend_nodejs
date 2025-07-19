@@ -1,8 +1,5 @@
 import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import User from '../models/Users.js';
-import { generateAccessToken } from '../utils/tokens.js';
 import sendEmail from '../utils/sendEmail.js';
 import uploadImage from '../utils/uploader/upload.js';
 import deleteImage from '../utils/uploader/deleteImage.js';
@@ -234,10 +231,13 @@ export const getSeedsTypeByID = async (req, res) => {
 export const addSeedsTypeByID = async (req, res) => {
     try {
         const { id, name } = req.body;
-
+        const file = req.file;
         const doc = await User.findOne();
         if (!doc) {
             return res.status(404).json({ message: 'No users found' });
+        }
+        if (!file) {
+            return res.status(404).json({ message: 'No file found' });
         }
 
         const seeds = doc.data.seeds.data;
@@ -247,9 +247,15 @@ export const addSeedsTypeByID = async (req, res) => {
             return res.status(404).json({ message: 'Seed category not found' });
         }
         const SubCat = seedsCat.Type;
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+
         const newSubCat = {
             _id: new mongoose.Types.ObjectId(),
             name,
+            img: {
+                url: imageUrl,
+                id: public_id,
+            },
         }
         SubCat.push(newSubCat);
         await doc.save();
@@ -299,7 +305,7 @@ export const updateSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body;
-
+        const file = req.file;
         const doc = await User.findOne();
         if (!doc) {
             return res.status(404).json({ message: 'No user found' });
@@ -312,15 +318,19 @@ export const updateSeedsTypeByID = async (req, res) => {
             const typeItem = cat.Type.find(sub => sub._id.toString() === id);
             if (typeItem) {
                 if (name) typeItem.name = name;
+                if (file) {
+                    const publicId = typeItem.img?.id;
+                    const { url: imageUrl, public_id } = await replaceImage(publicId, file.buffer);
+                    categoryItem.img.url = imageUrl;
+                    categoryItem.img.id = public_id;
+                }
                 updated = true;
                 break;
             }
         }
-
         if (!updated) {
             return res.status(404).json({ message: 'Subcategory not found' });
         }
-
         await doc.save();
         res.status(200).json({ message: '✅ Subcategory updated successfully' });
     } catch (error) {
@@ -888,14 +898,14 @@ export const getInsecticideTypes = async (req, res) => {
 
 export const addInsecticideType = async (req, res) => {
     try {
-        const { name, description,id } = req.body;
+        const { name, description, id, company } = req.body;
         const file = req.file;
 
         if (!file) return res.status(400).json({ message: '❌ Image file is required' });
 
         const doc = await User.findOne();
         if (!doc) return res.status(404).json({ message: '❌ User not found' });
-        
+
         const category = doc.data.Insecticide.data.find(cat => cat._id.toString() === id);
         if (!category) return res.status(404).json({ message: '❌ Category not found' });
 
@@ -906,6 +916,7 @@ export const addInsecticideType = async (req, res) => {
             name,
             description,
             img: { url, id: public_id },
+            company
         };
 
         category.Type.push(newType);
@@ -920,7 +931,7 @@ export const addInsecticideType = async (req, res) => {
 export const updateInsecticideType = async (req, res) => {
     try {
         const { catId, typeId } = req.params;
-        const { name, description } = req.body;
+        const { name, description, company } = req.body;
         const file = req.file;
 
         const doc = await User.findOne();
@@ -940,7 +951,9 @@ export const updateInsecticideType = async (req, res) => {
             const { url, public_id } = await replaceImage(oldId, file.buffer);
             type.img = { url, id: public_id };
         }
-
+        if (company) {
+            type.company = company;
+        }
         await doc.save();
 
         res.status(200).json({ message: '✅ Type updated', data: type });

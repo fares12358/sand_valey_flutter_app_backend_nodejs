@@ -100,6 +100,7 @@ const userSchema = new mongoose.Schema({
                 id: { type: String },
               },
               description: { type: String },
+              company: { type: String },
             }
           ]
         }
