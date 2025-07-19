@@ -40,7 +40,7 @@ router.delete('/delete-communication-eng/:placeId/:engId', deleteEngById);
 router.get('/get-insecticide-data', getInsecticideData);
 router.post('/add-insecticide-data', upload.single('image'), addInsecticideData);
 router.delete('/delete-insecticide-data/:id', deleteInsecticideData);
-router.post('/update-insecticide-data', updateInsecticideData);
+router.post('/update-insecticide-data', upload.single('image'), updateInsecticideData);
 //insecticide type
 router.get('/get-insecticide-type/:catId', getInsecticideTypes);
 router.post('/add-insecticide-type', upload.single('image'), addInsecticideType);
