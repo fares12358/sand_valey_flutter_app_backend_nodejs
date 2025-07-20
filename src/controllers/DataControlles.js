@@ -207,8 +207,6 @@ export const updateCategoryById = async (req, res) => {
     }
 };
 
-
-
 // seeds main type subCat
 export const getSeedsTypeByID = async (req, res) => {
     try {
@@ -1002,3 +1000,122 @@ export const deleteInsecticideType = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
     }
 };
+
+//Fertilizer
+export const getFertilizerdata = async (req, res) => {
+    try {
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ doc not found' });
+        const Fertilizer = doc.data.Fertilizer.data;
+
+        res.status(200).json({ data: Fertilizer });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
+    }
+}
+export const addFertilizerdata = async (req, res) => {
+    try {
+        const { name } = req.body;
+        const file = req.file;
+        if (!name) return res.status(400).json({ message: '❌ name is required' });
+        if (!file) return res.status(400).json({ message: '❌ Image file is required' });
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ doc not found' });
+        const Fertilizer = doc.data.Fertilizer.data;
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+
+        const newData = {
+            _id: new mongoose.Types.ObjectId(),
+            name,
+            img: {
+                url: imageUrl,
+                id: public_id,
+            }
+        }
+        Fertilizer.push(newData);
+        await doc.save();
+
+        res.status(200).json({ data: Fertilizer });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
+    }
+}
+export const updateFertilizerdata = async (req, res) => {
+    try {
+        const { name, id } = req.body;
+        const file = req.file;
+
+        if (!id) return res.status(400).json({ message: '❌ id is required' });
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ doc not found' });
+        const Fertilizer = doc.data.Fertilizer.data;
+        const selected = Fertilizer.find((m) => m._id.toString() === id);
+
+        if (name) {
+            selected.name = name;
+        }
+        if (file) {
+            const oldId = selected.img.id;
+            const { url, public_id } = await replaceImage(oldId, file.buffer);
+            selected.img = { url, id: public_id };
+        }
+
+        await doc.save();
+
+        res.status(200).json({ data: Fertilizer });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
+    }
+}
+export const deleteFertilizerdata = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ message: '❌ No id provided' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ No user document found' });
+        }
+
+        const Fertilizer = doc.data.Fertilizer?.data;
+        if (!Fertilizer) {
+            return res.status(404).json({ message: '❌ No Fertilizer data found' });
+        }
+
+        const categoryToDelete = Fertilizer.find(item => item._id.toString() === id);
+        if (!categoryToDelete) {
+            return res.status(404).json({ message: '❌ Category not found' });
+        }
+
+        // Delete the category image from cloud if exists
+        const publicId = categoryToDelete.img?.id;
+        if (publicId) {
+            await deleteImage(publicId);
+        }
+
+        // Filter out the category
+        doc.data.Fertilizer.data = Fertilizer.filter(item => item._id.toString() !== id);
+
+        await doc.save();
+
+        res.status(200).json({
+            message: '✅ Category deleted successfully',
+            data: doc.data.Fertilizer.data,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to delete category',
+            error: error.message,
+        });
+    }
+};
+
+//Fertilizer type
+

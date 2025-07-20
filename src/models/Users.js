@@ -59,17 +59,17 @@ const userSchema = new mongoose.Schema({
         {
           //cat
           _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+          name: { type: String },
           img: {
             url: { type: String },
             id: { type: String },
           },
-          name: { type: String },
           Type: [
             {
               //subcat
               _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+              name: { type: String },
               img: {
-                name: { type: String },
                 url: { type: String },
                 id: { type: String },
               },

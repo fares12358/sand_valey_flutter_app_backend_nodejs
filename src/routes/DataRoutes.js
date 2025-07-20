@@ -1,5 +1,5 @@
 import express from 'express';
-import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType } from '../controllers/DataControlles.js';
+import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType, getFertilizerdata, addFertilizerdata, updateFertilizerdata, deleteFertilizerdata } from '../controllers/DataControlles.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -46,6 +46,12 @@ router.get('/get-insecticide-type/:catId', getInsecticideTypes);
 router.post('/add-insecticide-type', upload.single('image'), addInsecticideType);
 router.post('/update-insecticide-type/:catId/:typeId', upload.single('image'), updateInsecticideType);
 router.delete('/delete-insecticide-type/:catId/:typeId', deleteInsecticideType);
+//Fertilizer
+router.get('/get-fertilizer-data', getFertilizerdata);
+router.post('/add-fertilizer-data', upload.single('image'), addFertilizerdata);
+router.post('/update-fertilizer-data', upload.single('image'), updateFertilizerdata);
+router.delete('/delete-fertilizer-data/:id', deleteFertilizerdata);
+//Fertilizer type
 
 
 export default router;
