@@ -1014,6 +1014,7 @@ export const getFertilizerdata = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
     }
 }
+
 export const addFertilizerdata = async (req, res) => {
     try {
         const { name } = req.body;
@@ -1024,7 +1025,6 @@ export const addFertilizerdata = async (req, res) => {
         if (!doc) return res.status(404).json({ message: '❌ doc not found' });
         const Fertilizer = doc.data.Fertilizer.data;
         const { url: imageUrl, public_id } = await uploadImage(file.buffer);
-
         const newData = {
             _id: new mongoose.Types.ObjectId(),
             name,
@@ -1035,13 +1035,12 @@ export const addFertilizerdata = async (req, res) => {
         }
         Fertilizer.push(newData);
         await doc.save();
-
         res.status(200).json({ data: Fertilizer });
-
     } catch (error) {
         res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
     }
 }
+
 export const updateFertilizerdata = async (req, res) => {
     try {
         const { name, id } = req.body;
@@ -1052,7 +1051,6 @@ export const updateFertilizerdata = async (req, res) => {
         if (!doc) return res.status(404).json({ message: '❌ doc not found' });
         const Fertilizer = doc.data.Fertilizer.data;
         const selected = Fertilizer.find((m) => m._id.toString() === id);
-
         if (name) {
             selected.name = name;
         }
@@ -1061,15 +1059,13 @@ export const updateFertilizerdata = async (req, res) => {
             const { url, public_id } = await replaceImage(oldId, file.buffer);
             selected.img = { url, id: public_id };
         }
-
         await doc.save();
-
         res.status(200).json({ data: Fertilizer });
-
     } catch (error) {
         res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
     }
 }
+
 export const deleteFertilizerdata = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1117,5 +1113,321 @@ export const deleteFertilizerdata = async (req, res) => {
     }
 };
 
-//Fertilizer type
+//Fertilizer type1
+export const getFertilizerType = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ doc not found' });
+        const Fertilizer = doc.data.Fertilizer.data;
+        const type = Fertilizer.find((m) => m._id.toString() === id);
+        if (!type) {
+            return res.status(404).json({ message: '❌ type not found' });
+        }
+        res.status(200).json({ data: type });
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to get type',
+            error: error.message,
+        });
+    }
+}
 
+export const addFertilizerType = async (req, res) => {
+    try {
+        const { id, name, haveType, company, description } = req.body;
+        const file = req.file;
+
+        if (!id) return res.status(400).json({ message: '❌ id is required' });
+        if (!name) return res.status(400).json({ message: '❌ name is required' });
+        if (!file) return res.status(400).json({ message: '❌ Image file is required' });
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ User document not found' });
+
+        const Fertilizer = doc.data.Fertilizer.data;
+        const category = Fertilizer.find((cat) => cat._id.toString() === id);
+        if (!category) return res.status(404).json({ message: '❌ Category not found' });
+
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+
+        const newType = {
+            _id: new mongoose.Types.ObjectId(),
+            name,
+            img: {
+                url: imageUrl,
+                id: public_id,
+            }
+        };
+
+        if (!haveType || haveType === 'false' || (!!company && !!description)) {
+            // Add as a leaf type (no nested Type array)
+            newType.company = company;
+            newType.description = description;
+        } else {
+            // Add as a parent type (can contain sub-types)
+            newType.Type = [];
+        }
+        category.Type.push(newType);
+
+        await doc.save();
+
+        res.status(200).json({ message: '✅ Type added successfully', data: category.Type });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to add type', error: error.message });
+    }
+};
+export const updateFertilizerType = async (req, res) => {
+    try {
+        const { categoryId, typeId, name, company, description } = req.body;
+        const file = req.file;
+
+        if (!categoryId || !typeId) {
+            return res.status(400).json({ message: '❌ categoryId and typeId are required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ User document not found' });
+        }
+
+        const Fertilizer = doc.data.Fertilizer.data;
+        const category = Fertilizer.find((cat) => cat._id.toString() === categoryId);
+        if (!category) {
+            return res.status(404).json({ message: '❌ Category not found' });
+        }
+
+        const type = category.Type.find((t) => t._id.toString() === typeId);
+        if (!type) {
+            return res.status(404).json({ message: '❌ Type not found in this category' });
+        }
+
+        // Update fields
+        if (name) type.name = name;
+        if (company) type.company = company;
+        if (description) type.description = description;
+
+        if (file) {
+            const oldId = type.img?.id;
+            const { url, public_id } = await replaceImage(oldId, file.buffer);
+            type.img = { url, id: public_id };
+        }
+
+        await doc.save();
+
+        res.status(200).json({ message: '✅ Type updated successfully', data: type });
+
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to update type',
+            error: error.message,
+        });
+    }
+};
+export const deleteFertilizerType = async (req, res) => {
+    try {
+        const { categoryId, typeId } = req.params;
+
+        if (!categoryId || !typeId) {
+            return res.status(400).json({ message: '❌ categoryId and typeId are required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ User document not found' });
+        }
+
+        const fertilizerCategories = doc.data.Fertilizer.data;
+        const category = fertilizerCategories.find(cat => cat._id.toString() === categoryId);
+        if (!category) {
+            return res.status(404).json({ message: '❌ Fertilizer category not found' });
+        }
+
+        const typeIndex = category.Type.findIndex(type => type._id.toString() === typeId);
+        if (typeIndex === -1) {
+            return res.status(404).json({ message: '❌ Fertilizer type not found in this category' });
+        }
+
+        // Optional: delete image from Cloudinary if needed
+        const imageId = category.Type[typeIndex].img?.id;
+        if (imageId) {
+            await deleteImage(imageId); // You should have a deleteImage util
+        }
+
+        category.Type.splice(typeIndex, 1); // remove the type
+        await doc.save();
+
+        res.status(200).json({
+            message: '✅ Fertilizer type deleted successfully',
+            data: category.Type
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to delete fertilizer type',
+            error: error.message,
+        });
+    }
+};
+
+//Fertilizer type2
+export const getFertilizerNestedType = async (req, res) => {
+    try {
+        const { categoryId, typeId } = req.params;
+
+        if (!categoryId || !typeId) {
+            return res.status(400).json({ message: '❌ categoryId and typeId are required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ User document not found' });
+        }
+
+        const fertilizerCategories = doc.data.Fertilizer.data;
+        const category = fertilizerCategories.find(cat => cat._id.toString() === categoryId);
+        if (!category) {
+            return res.status(404).json({ message: '❌ Fertilizer category not found' });
+        }
+
+        const type = category.Type.find(type => type._id.toString() === typeId);
+        if (!type) {
+            return res.status(404).json({ message: '❌ Fertilizer type not found in this category' });
+        }
+        const nestedType = type.Type;
+        if (!nestedType) {
+            return res.status(404).json({ message: '❌ Fertilizer nested type not found in this category' });
+        }
+
+        res.status(200).json({ data: nestedType });
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to get nested type',
+            error: error.message,
+        });
+    }
+}
+export const addFertilizerNestedType = async (req, res) => {
+    try {
+        const { categoryId, typeId, name, company, description } = req.body;
+        const file = req.file;
+
+        if (!categoryId || !typeId) {
+            return res.status(400).json({ message: '❌ categoryId and typeId are required' });
+        }
+        if (!name || !company || !description) {
+            return res.status(400).json({ message: '❌ data are required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) {
+            return res.status(404).json({ message: '❌ User document not found' });
+        }
+
+        const fertilizerCategories = doc.data.Fertilizer.data;
+        const category = fertilizerCategories.find(cat => cat._id.toString() === categoryId);
+        if (!category) {
+            return res.status(404).json({ message: '❌ Fertilizer category not found' });
+        }
+
+        const type = category.Type.find(type => type._id.toString() === typeId);
+        if (!type) {
+            return res.status(404).json({ message: '❌ Fertilizer type not found in this category' });
+        }
+        const nestedType = type.Type;
+        if (!nestedType) {
+            return res.status(404).json({ message: '❌ Fertilizer nested type not found in this category' });
+        }
+        const { url: imageUrl, public_id } = await uploadImage(file.buffer);
+
+        const newType = {
+            name,
+            company,
+            description,
+            img: {
+                id: public_id,
+                url: imageUrl,
+            }
+        }
+        nestedType.push(newType);
+
+        await doc.save();
+
+        res.status(200).json({ data: nestedType });
+    } catch (error) {
+        res.status(500).json({
+            message: '❌ Failed to add nested type',
+            error: error.message,
+        });
+    }
+}
+export const updateFertilizerNestedType = async (req, res) => {
+    try {
+        const { categoryId, typeId, nestedTypeId, name, company, description } = req.body;
+        const file = req.file;
+
+        if (!categoryId || !typeId || !nestedTypeId) {
+            return res.status(400).json({ message: '❌ Required IDs are missing' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ User document not found' });
+
+        const category = doc.data.Fertilizer.data.find(cat => cat._id.toString() === categoryId);
+        if (!category) return res.status(404).json({ message: '❌ Category not found' });
+
+        const type = category.Type.find(t => t._id.toString() === typeId);
+        if (!type) return res.status(404).json({ message: '❌ Type not found' });
+
+        const nested = type.Type.find(nt => nt._id.toString() === nestedTypeId);
+        if (!nested) return res.status(404).json({ message: '❌ Nested type not found' });
+
+        if (name) nested.name = name;
+        if (company) nested.company = company;
+        if (description) nested.description = description;
+
+        if (file) {
+            const oldId = nested.img?.id;
+            const { url, public_id } = await replaceImage(oldId, file.buffer);
+            nested.img = { url, id: public_id };
+        }
+
+        await doc.save();
+        res.status(200).json({ data: type.Type });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to update nested type', error: error.message });
+    }
+};
+export const deleteFertilizerNestedType = async (req, res) => {
+    try {
+        const { categoryId, typeId, nestedTypeId } = req.params;
+
+        if (!categoryId || !typeId || !nestedTypeId) {
+            return res.status(400).json({ message: '❌ categoryId, typeId, and nestedTypeId are required' });
+        }
+
+        const doc = await User.findOne();
+        if (!doc) return res.status(404).json({ message: '❌ User document not found' });
+
+        const category = doc.data.Fertilizer.data.find(cat => cat._id.toString() === categoryId);
+        if (!category) return res.status(404).json({ message: '❌ Fertilizer category not found' });
+
+        const type = category.Type.find(t => t._id.toString() === typeId);
+        if (!type) return res.status(404).json({ message: '❌ Fertilizer type not found' });
+
+        const index = type.Type.findIndex(nested => nested._id.toString() === nestedTypeId);
+        if (index === -1) return res.status(404).json({ message: '❌ Nested type not found' });
+
+        const imageId = type.Type[index]?.img?.id;
+        if (imageId) await deleteImage(imageId);
+
+        type.Type.splice(index, 1);
+        await doc.save();
+
+        res.status(200).json({ message: '✅ Nested type deleted', data: type.Type });
+
+    } catch (error) {
+        res.status(500).json({ message: '❌ Failed to delete nested type', error: error.message });
+    }
+};

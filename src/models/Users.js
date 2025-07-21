@@ -66,38 +66,35 @@ const userSchema = new mongoose.Schema({
           },
           Type: [
             {
-              //subcat
-              _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+              _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                default: () => new mongoose.Types.ObjectId()
+              },
               name: { type: String },
               img: {
                 url: { type: String },
-                id: { type: String },
+                id: { type: String }
               },
-              description: {
-                //desc
-                name: { type: String },
-                company: { type: String },
-                description: { type: String }
-              },
-              ScType: [
+              company: { type: String, required: false }, // optional
+              description: { type: String, required: false }, // optional
+              Type: [
                 {
-                  _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+                  _id: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    default: () => new mongoose.Types.ObjectId()
+                  },
                   name: { type: String },
                   img: {
                     url: { type: String },
-                    id: { type: String },
+                    id: { type: String }
                   },
-                  description: {
-                    //desc
-                    name: { type: String },
-                    company: { type: String },
-                    description: { type: String }
-                  },
+                  company: { type: String },
+                  description: { type: String }
                 }
               ]
-
             }
           ]
+
         }
       ]
     },

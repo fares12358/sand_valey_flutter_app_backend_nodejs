@@ -1,5 +1,5 @@
 import express from 'express';
-import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType, getFertilizerdata, addFertilizerdata, updateFertilizerdata, deleteFertilizerdata } from '../controllers/DataControlles.js';
+import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType, getFertilizerdata, addFertilizerdata, updateFertilizerdata, deleteFertilizerdata, getFertilizerType, addFertilizerType, updateFertilizerType, deleteFertilizerType, getFertilizerNestedType, addFertilizerNestedType, updateFertilizerNestedType, deleteFertilizerNestedType } from '../controllers/DataControlles.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -52,6 +52,18 @@ router.post('/add-fertilizer-data', upload.single('image'), addFertilizerdata);
 router.post('/update-fertilizer-data', upload.single('image'), updateFertilizerdata);
 router.delete('/delete-fertilizer-data/:id', deleteFertilizerdata);
 //Fertilizer type
+router.get('/get-fertilizer-type/:id', getFertilizerType);
+router.post('/add-fertilizer-type', upload.single('image'), addFertilizerType); //add type with desc
+router.post('/update-fertilizer-type', upload.single('image'), updateFertilizerType);
+router.delete('/delete-fertilizer-type/:categoryId/:typeId', deleteFertilizerType);
+//Fertilizer type two
+router.get('/get-fertilizer-nested-type/:categoryId/:typeId', getFertilizerNestedType);
+router.post('/add-fertilizer-nested-type', upload.single('image'), addFertilizerNestedType); //add nested type with desc
+router.post('/update-fertilizer-nested-type', upload.single('image'), updateFertilizerNestedType);
+router.delete('/delete-fertilizer-nested-type/:categoryId/:typeId/:nestedTypeId', deleteFertilizerNestedType);
+
+
+
 
 
 export default router;
