@@ -46,6 +46,7 @@ router.get('/get-insecticide-type/:catId', getInsecticideTypes);
 router.post('/add-insecticide-type', upload.single('image'), addInsecticideType);
 router.post('/update-insecticide-type/:catId/:typeId', upload.single('image'), updateInsecticideType);
 router.delete('/delete-insecticide-type/:catId/:typeId', deleteInsecticideType);
+
 //Fertilizer
 router.get('/get-fertilizer-data', getFertilizerdata);
 router.post('/add-fertilizer-data', upload.single('image'), addFertilizerdata);
@@ -61,9 +62,5 @@ router.get('/get-fertilizer-nested-type/:categoryId/:typeId', getFertilizerNeste
 router.post('/add-fertilizer-nested-type', upload.single('image'), addFertilizerNestedType); //add nested type with desc
 router.post('/update-fertilizer-nested-type', upload.single('image'), updateFertilizerNestedType);
 router.delete('/delete-fertilizer-nested-type/:categoryId/:typeId/:nestedTypeId', deleteFertilizerNestedType);
-
-
-
-
 
 export default router;
