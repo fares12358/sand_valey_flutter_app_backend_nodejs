@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
         }
       ]
     },
-   Fertilizer: {
+    Fertilizer: {
       _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
       data: [
         {
@@ -77,7 +77,7 @@ const userSchema = new mongoose.Schema({
               },
               company: { type: String, required: false }, // optional
               description: { type: String, required: false }, // optional
-              Type: [ 
+              Type: [
                 {
                   _id: {
                     type: mongoose.Schema.Types.ObjectId,

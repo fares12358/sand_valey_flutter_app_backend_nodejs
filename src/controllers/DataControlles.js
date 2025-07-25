@@ -132,37 +132,55 @@ export const addSeedsCategories = async (req, res) => {
 };
 export const deleteCategoryById = async (req, res) => {
     try {
-        const section = 'seeds';
+        const section = 'seeds'; // or dynamic
         const { id } = req.params;
 
         const doc = await User.findOne();
         if (!doc) return res.status(404).json({ message: 'User document not found' });
 
         const categoryList = doc.data[section].data;
-
         const categoryIndex = categoryList.findIndex(cat => cat._id.toString() === id);
 
         if (categoryIndex === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        // Get Cloudinary public ID
-        const publicId = categoryList[categoryIndex].img?.id;
+        const category = categoryList[categoryIndex];
 
-        // Delete from Cloudinary
-        if (publicId) {
-            await deleteImage(publicId);
+        // 🧹 Collect all image IDs to delete
+        const imageIdsToDelete = [];
+
+        // 🖼️ Category image
+        if (category.img?.id) {
+            imageIdsToDelete.push(category.img.id);
         }
-        // Remove from array
-        categoryList.splice(categoryIndex, 1);
 
+        // 🔁 Loop through all nested Types
+        category.Type?.forEach(type => {
+            if (type.img?.id) {
+                imageIdsToDelete.push(type.img.id);
+            }
+            if (type.description?.img?.id) {
+                imageIdsToDelete.push(type.description.img.id);
+            }
+        });
+
+        // 🧨 Delete all collected images from Cloudinary
+        for (const imgId of imageIdsToDelete) {
+            await deleteImage(imgId);
+        }
+
+        // ❌ Remove category
+        categoryList.splice(categoryIndex, 1);
         await doc.save();
 
-        res.status(200).json({ message: 'Category deleted successfully', categories: doc.data[section] });
+        res.status(200).json({ message: '✅ Category and all nested images deleted successfully', categories: doc.data[section] });
+
     } catch (error) {
-        res.status(500).json({ message: 'Delete category error', error: error.message });
+        res.status(500).json({ message: '❌ Delete category error', error: error.message });
     }
 };
+
 export const updateCategoryById = async (req, res) => {
     try {
         const section = "seeds";
@@ -267,6 +285,7 @@ export const addSeedsTypeByID = async (req, res) => {
         res.status(500).json({ message: "get seeds type error", error: error.message });
     }
 }
+
 export const deleteSeedsTypeByID = async (req, res) => {
     try {
         const { id } = req.params;
@@ -282,13 +301,28 @@ export const deleteSeedsTypeByID = async (req, res) => {
         for (const cat of seeds) {
             const typeIndex = cat.Type.findIndex(sub => sub._id.toString() === id);
             if (typeIndex !== -1) {
-                const publicId = cat.Type[typeIndex].img?.id;
+                const type = cat.Type[typeIndex];
 
-                if (publicId) {
-                    await deleteImage(publicId);
+                // 🧹 Collect all image IDs
+                const imageIds = [];
+
+                // Subcategory image
+                if (type.img?.id) {
+                    imageIds.push(type.img.id);
                 }
 
-                cat.Type.splice(typeIndex, 1); // Remove subcategory
+                // Description image (if exists)
+                if (type.description?.img?.id) {
+                    imageIds.push(type.description.img.id);
+                }
+
+                // 🧨 Delete all images from Cloudinary
+                for (const imgId of imageIds) {
+                    await deleteImage(imgId);
+                }
+
+                // ❌ Remove subcategory
+                cat.Type.splice(typeIndex, 1);
                 found = true;
                 break;
             }
@@ -300,7 +334,7 @@ export const deleteSeedsTypeByID = async (req, res) => {
 
         await doc.save();
 
-        res.status(200).json({ message: '✅ Subcategory deleted successfully' });
+        res.status(200).json({ message: '✅ Subcategory and nested images deleted successfully' });
     } catch (error) {
         res.status(500).json({
             message: '❌ Delete subcategory error',
@@ -308,6 +342,7 @@ export const deleteSeedsTypeByID = async (req, res) => {
         });
     }
 };
+
 export const updateSeedsTypeByID = async (req, res) => {
     try {
         const { name, id } = req.body;
@@ -455,6 +490,7 @@ export const updateSubCategoryDescription = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to update description', error: error.message });
     }
 };
+
 export const deleteSubCategoryDescriptionById = async (req, res) => {
     try {
         const { id } = req.params; // subcategory (_id in Type[]) to find
@@ -484,6 +520,7 @@ export const deleteSubCategoryDescriptionById = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to delete description', error: error.message });
     }
 };
+
 //Comunication
 export const getAllCommunication = async (req, res) => {
     try {
@@ -551,18 +588,45 @@ export const deleteCommunication = async (req, res) => {
             return res.status(404).json({ message: '❌ No users found' });
         }
 
-        const comm = doc.data.Communication.data;
-        const initialLength = comm.length;
+        const communication = doc.data.Communication.data;
+        const placeIndex = communication.findIndex(item => item._id.toString() === id);
 
-        // Filter out the item to delete
-        doc.data.Communication.data = comm.filter((item) => item._id.toString() !== id);
-
-        if (doc.data.Communication.data.length === initialLength) {
+        if (placeIndex === -1) {
             return res.status(404).json({ message: '❌ Communication item not found' });
         }
 
+        const place = communication[placeIndex];
+
+        // 🧹 Collect image IDs to delete
+        const imageIds = [];
+
+        // Main place image
+        if (place.img?.id) {
+            imageIds.push(place.img.id);
+        }
+
+        // All engineer images
+        if (place.eng && Array.isArray(place.eng)) {
+            for (const eng of place.eng) {
+                if (eng.img?.id) {
+                    imageIds.push(eng.img.id);
+                }
+            }
+        }
+
+        // 🧨 Delete all images from Cloudinary
+        for (const imgId of imageIds) {
+            await deleteImage(imgId);
+        }
+
+        // ❌ Remove the communication place from array
+        doc.data.Communication.data.splice(placeIndex, 1);
+
         await doc.save();
-        res.status(200).json({ message: '✅ Communication deleted successfully', data: doc.data.Communication.data });
+        res.status(200).json({
+            message: '✅ Communication and all nested images deleted successfully',
+            data: doc.data.Communication.data
+        });
 
     } catch (error) {
         res.status(500).json({
@@ -571,6 +635,7 @@ export const deleteCommunication = async (req, res) => {
         });
     }
 };
+
 //add eng 
 export const addEngCommunication = async (req, res) => {
     try {
@@ -692,6 +757,7 @@ export const updateEngById = async (req, res) => {
         });
     }
 };
+
 export const deleteEngById = async (req, res) => {
     try {
         const { placeId, engId } = req.params;
@@ -813,19 +879,32 @@ export const deleteInsecticideData = async (req, res) => {
             return res.status(404).json({ message: '❌ Category not found' });
         }
 
-        // Delete the category image from cloud if exists
-        const publicId = categoryToDelete.img?.id;
-        if (publicId) {
-            await deleteImage(publicId);
+        const imageIdsToDelete = [];
+
+        // Main category image
+        if (categoryToDelete.img?.id) {
+            imageIdsToDelete.push(categoryToDelete.img.id);
         }
 
-        // Filter out the category
+        // All nested Type images
+        for (const type of categoryToDelete.Type || []) {
+            if (type.img?.id) {
+                imageIdsToDelete.push(type.img.id);
+            }
+        }
+
+        // Delete all images from Cloudinary
+        for (const imgId of imageIdsToDelete) {
+            await deleteImage(imgId);
+        }
+
+        // Remove the category
         doc.data.Insecticide.data = insecticideData.filter(item => item._id.toString() !== id);
 
         await doc.save();
 
         res.status(200).json({
-            message: '✅ Category deleted successfully',
+            message: '✅ Category and nested images deleted successfully',
             data: doc.data.Insecticide.data,
         });
 
@@ -836,6 +915,7 @@ export const deleteInsecticideData = async (req, res) => {
         });
     }
 };
+
 // update
 export const updateInsecticideData = async (req, res) => {
     try {
@@ -1065,7 +1145,6 @@ export const updateFertilizerdata = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to delete type', error: error.message });
     }
 }
-
 export const deleteFertilizerdata = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1089,25 +1168,45 @@ export const deleteFertilizerdata = async (req, res) => {
             return res.status(404).json({ message: '❌ Category not found' });
         }
 
-        // Delete the category image from cloud if exists
-        const publicId = categoryToDelete.img?.id;
-        if (publicId) {
-            await deleteImage(publicId);
+        const imageIdsToDelete = [];
+
+        // ✅ Main category image
+        if (categoryToDelete.img?.id) {
+            imageIdsToDelete.push(categoryToDelete.img.id);
         }
 
-        // Filter out the category
+        // ✅ Level 1: Type[].img
+        for (const type of categoryToDelete.Type || []) {
+            if (type.img?.id) {
+                imageIdsToDelete.push(type.img.id);
+            }
+
+            // ✅ Level 2: Type[].Type[].img
+            for (const subType of type.Type || []) {
+                if (subType.img?.id) {
+                    imageIdsToDelete.push(subType.img.id);
+                }
+            }
+        }
+
+        // ✅ Delete all collected image IDs from Cloudinary
+        for (const imgId of imageIdsToDelete) {
+            await deleteImage(imgId);
+        }
+
+        // ✅ Remove the category from Fertilizer list
         doc.data.Fertilizer.data = Fertilizer.filter(item => item._id.toString() !== id);
 
         await doc.save();
 
         res.status(200).json({
-            message: '✅ Category deleted successfully',
+            message: '✅ Fertilizer category and nested images deleted successfully',
             data: doc.data.Fertilizer.data,
         });
 
     } catch (error) {
         res.status(500).json({
-            message: '❌ Failed to delete category',
+            message: '❌ Failed to delete Fertilizer category',
             error: error.message,
         });
     }
@@ -1248,19 +1347,35 @@ export const deleteFertilizerType = async (req, res) => {
             return res.status(404).json({ message: '❌ Fertilizer type not found in this category' });
         }
 
-        // Optional: delete image from Cloudinary if needed
-        const imageId = category.Type[typeIndex].img?.id;
-        if (imageId) {
-            await deleteImage(imageId); // You should have a deleteImage util
+        const typeToDelete = category.Type[typeIndex];
+        const imageIdsToDelete = [];
+
+        // ✅ Main type image
+        if (typeToDelete.img?.id) {
+            imageIdsToDelete.push(typeToDelete.img.id);
         }
 
-        category.Type.splice(typeIndex, 1); // remove the type
+        // ✅ Nested Type[].Type[].img
+        for (const nested of typeToDelete.Type || []) {
+            if (nested.img?.id) {
+                imageIdsToDelete.push(nested.img.id);
+            }
+        }
+
+        // ✅ Delete all collected images
+        for (const imgId of imageIdsToDelete) {
+            await deleteImage(imgId);
+        }
+
+        // ✅ Remove the type
+        category.Type.splice(typeIndex, 1);
         await doc.save();
 
         res.status(200).json({
-            message: '✅ Fertilizer type deleted successfully',
+            message: '✅ Fertilizer type and nested images deleted successfully',
             data: category.Type
         });
+
     } catch (error) {
         res.status(500).json({
             message: '❌ Failed to delete fertilizer type',
@@ -1352,7 +1467,7 @@ export const addFertilizerNestedType = async (req, res) => {
 
         await doc.save();
 
-        res.status(200).json({ data: nestedType,message:"Fertilizer adding successfully" });
+        res.status(200).json({ data: nestedType, message: "Fertilizer adding successfully" });
     } catch (error) {
         res.status(500).json({
             message: '❌ Failed to add nested type',
@@ -1398,6 +1513,7 @@ export const updateFertilizerNestedType = async (req, res) => {
         res.status(500).json({ message: '❌ Failed to update nested type', error: error.message });
     }
 };
+
 export const deleteFertilizerNestedType = async (req, res) => {
     try {
         const { categoryId, typeId, nestedTypeId } = req.params;
