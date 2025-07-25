@@ -1,12 +1,13 @@
 import express from 'express';
 import { forgotPassword, loginUser, registerUser, resetPassword, updateUser, verifyEmail, verifyOTP, verifyUser } from '../controllers/AuthControlles.js';
+import { authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // POST /api/auth/login
 router.post('/login', loginUser);
 // POST /api/auth/register
-router.post('/register', registerUser); 
+router.post('/register', authorizeRoles('admin'), registerUser); //create new user for data entry 
 // POST /api/auth/forgot-password
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-otp', verifyOTP);
