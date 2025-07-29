@@ -1,6 +1,7 @@
 import express from 'express';
 import { addSeedsCategories, deleteCategoryById, getALlData, getAllSeeds, updateCategoryById, getSeedsTypeByID, addSeedsTypeByID, deleteSeedsTypeByID, updateSeedsTypeByID, getSeedsDescreptionById, updateSubCategoryDescription, addSubCategoryDescription, deleteSubCategoryDescriptionById, getAllCommunication, addCommunication, addEngCommunication, getEngCommunicationById, updateCommunication, deleteCommunication, updateEngById, deleteEngById, getmainCat, UpdatemainCat, addmainCat, getInsecticideData, addInsecticideData, deleteInsecticideData, updateInsecticideData, getInsecticideTypes, addInsecticideType, deleteInsecticideType, updateInsecticideType, getFertilizerdata, addFertilizerdata, updateFertilizerdata, deleteFertilizerdata, getFertilizerType, addFertilizerType, updateFertilizerType, deleteFertilizerType, getFertilizerNestedType, addFertilizerNestedType, updateFertilizerNestedType, deleteFertilizerNestedType } from '../controllers/DataControlles.js';
 import multer from 'multer';
+import {  protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 // Temporary local storage
@@ -13,7 +14,7 @@ router.post("/update-main-categories", upload.single('image'), UpdatemainCat)
 router.get('/get-data', getALlData);
 //seeds cat main
 router.get('/get-seeds-data', getAllSeeds);
-router.post('/add-seeds-categories', upload.single('image'), addSeedsCategories);
+router.post('/add-seeds-categories',protect, upload.single('image'), addSeedsCategories);
 router.delete('/delete-seeds-categories/:id', deleteCategoryById);
 router.post('/update-seeds-categories', upload.single('image'), updateCategoryById);
 //subCat seeds type

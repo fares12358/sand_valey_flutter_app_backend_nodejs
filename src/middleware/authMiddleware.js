@@ -1,48 +1,25 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import jwt from 'jsonwebtoken';
 
-export const verifyAdminToken = (req, res, next) => {
+const JWT_SECRET = process.env.JWT_SECRET;
+
+export const protect = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer '))
+        return res.status(401).json({ message: 'No token provided' });
+
+    const token = authHeader.split(' ')[1];
+
     try {
-        const authHeader = req.headers.authorization;
+        const decoded = jwt.verify(token, JWT_SECRET);
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ message: '❌ No token provided' });
+        if (decoded.role === 'admin' || decoded.role === 'user') {
+            return res.status(403).json({ message: 'Access denied: Admins only' });
         }
 
-        const token = authHeader.split(' ')[1];
-
-        if (token !== process.env.ADMIN_TOKEN) {
-            return res.status(403).json({ message: '❌ Invalid token' });
-        }
-
-        // ✅ Token is valid
+        req.user = decoded; // Attach user info to request
         next();
-
     } catch (error) {
-        res.status(500).json({ message: '❌ Authentication error', error: error.message });
+        return res.status(403).json({ message: 'Invalid or expired token' });
     }
 };
-
-
-export const verifyAppToken = (req, res, next) => {
-  try {
-      const authHeader = req.headers.authorization;
-
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          return res.status(401).json({ message: '❌ No token provided' });
-      }
-
-      const token = authHeader.split(' ')[1];
-
-      if (token !== process.env.APP_TOKEN) {
-          return res.status(403).json({ message: '❌ Invalid token' });
-      }
-
-      // ✅ Token is valid
-      next();
-
-  } catch (error) {
-      res.status(500).json({ message: '❌ Authentication error', error: error.message });
-  }
-};
-
