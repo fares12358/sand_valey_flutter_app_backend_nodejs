@@ -89,7 +89,7 @@
       const formData = new FormData(form);
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/add-fertilizer-nested-type', {
+        const response = await fetch('https://sand-valey-flutter-app-backend-node.vercel.app/api/auth/add-main-categories', {
           method: 'POST',
           body: formData
         });
