@@ -13,8 +13,8 @@ export const protect = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
 
-        if (decoded.role !== 'admin' || decoded.role !== 'user') {
-            return res.status(403).json({ message: 'Access denied: Admins only' });
+        if (decoded.role !== 'admin' && decoded.role !== 'user') {
+            return res.status(403).json({ message: 'Access denied: Admins or Users only' });
         }
 
         req.user = decoded; // Attach user info to request
